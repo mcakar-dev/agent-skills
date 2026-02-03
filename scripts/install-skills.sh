@@ -6,7 +6,7 @@
 # Installs agent skills to supported agentic IDEs.
 # 
 # Usage:
-#   ./install-skills.sh --ide <ide_name> [--skills <skill1,skill2>] [--dry-run]
+#   ./install-skills.sh --ide <ide_name> [--skills <skill1,skill2>] [--link] [--dry-run]
 #   ./install-skills.sh --list
 #   ./install-skills.sh --help
 #
@@ -39,11 +39,11 @@ readonly SUPPORTED_IDES="antigravity cursor windsurf"
 # Colors
 # ==============================================================================
 
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-NC='\033[0m' # No Color
+readonly RED='\033[0;31m'
+readonly GREEN='\033[0;32m'
+readonly YELLOW='\033[1;33m'
+readonly BLUE='\033[0;34m'
+readonly NC='\033[0m'
 
 # ==============================================================================
 # Functions
@@ -81,6 +81,9 @@ OPTIONS:
 
     --list              List available skills and exit
 
+    --link              Create symbolic links instead of copying files
+                        (Useful for development, changes reflect immediately)
+
     --dry-run           Preview changes without installing
 
     --help              Show this help message
@@ -94,6 +97,9 @@ EXAMPLES:
 
     # Preview installation
     $(basename "$0") --ide antigravity --dry-run
+
+    # Install with symbolic links (for development)
+    $(basename "$0") --ide antigravity --link
 
     # List available skills
     $(basename "$0") --list
@@ -125,7 +131,7 @@ list_skills() {
         
         if is_valid_skill "$skill_dir"; then
             local description
-            description=$(grep -m1 "^description:" "$skill_dir/SKILL.md" 2>/dev/null | sed 's/^description: *//' | head -c 60)
+            description=$(grep -m1 "^description:" "$skill_dir/SKILL.md" 2>/dev/null | sed 's/^description: *//' | cut -c 1-60)
             if [[ -n "$description" ]]; then
                 printf "  %-30s %s...\n" "$skill_name" "$description"
             else
@@ -187,10 +193,64 @@ get_skills_to_install() {
     echo "${skills_to_install[@]}"
 }
 
+copy_or_link_skill() {
+    local source_dir="$1"
+    local dest_dir="$2"
+    local use_symlink="$3"
+    
+    if [[ "$use_symlink" == "true" ]]; then
+        ln -s "$source_dir" "$dest_dir"
+    else
+        cp -r "$source_dir" "$dest_dir"
+    fi
+}
+
+install_single_skill() {
+    local skill="$1"
+    local source_dir="$2"
+    local dest_dir="$3"
+    local dry_run="$4"
+    local use_symlink="$5"
+    local is_replace="$6"
+    
+    local action_verb
+    local mode_suffix=""
+    
+    if [[ "$is_replace" == "true" ]]; then
+        action_verb="replace"
+    else
+        action_verb="install"
+    fi
+    
+    if [[ "$use_symlink" == "true" ]]; then
+        mode_suffix=" (symlink)"
+    fi
+    
+    if [[ "$dry_run" == "true" ]]; then
+        echo "Would $action_verb: $skill"
+        return 0
+    fi
+    
+    if [[ "$is_replace" == "true" ]]; then
+        rm -rf "$dest_dir"
+    fi
+    
+    copy_or_link_skill "$source_dir" "$dest_dir" "$use_symlink"
+    
+    local past_tense
+    if [[ "$is_replace" == "true" ]]; then
+        past_tense="Replaced"
+    else
+        past_tense="Installed"
+    fi
+    print_success "${past_tense}${mode_suffix}: $skill"
+}
+
 install_skills() {
     local ide="$1"
     local skills_arg="$2"
     local dry_run="$3"
+    local use_symlink="$4"
     
     local target_dir
     target_dir=$(get_ide_path "$ide")
@@ -205,6 +265,11 @@ install_skills() {
     echo ""
     print_info "Installing ${#skills_to_install[@]} skill(s) to $ide"
     print_info "Target directory: $target_dir"
+    if [[ "$use_symlink" == "true" ]]; then
+        print_info "Mode: symbolic links"
+    else
+        print_info "Mode: copy"
+    fi
     echo ""
     
     if [[ "$dry_run" == "true" ]]; then
@@ -227,25 +292,16 @@ install_skills() {
     for skill in "${skills_to_install[@]}"; do
         local source_dir="$SKILLS_DIR/$skill"
         local dest_dir="$target_dir/$skill"
+        local is_replace="false"
         
         if [[ -d "$dest_dir" ]]; then
-            if [[ "$dry_run" == "true" ]]; then
-                echo "Would replace: $skill"
-            else
-                rm -rf "$dest_dir"
-                cp -r "$source_dir" "$dest_dir"
-                print_success "Replaced: $skill"
-            fi
+            is_replace="true"
             ((replaced_count++))
         else
-            if [[ "$dry_run" == "true" ]]; then
-                echo "Would install: $skill"
-            else
-                cp -r "$source_dir" "$dest_dir"
-                print_success "Installed: $skill"
-            fi
             ((installed_count++))
         fi
+        
+        install_single_skill "$skill" "$source_dir" "$dest_dir" "$dry_run" "$use_symlink" "$is_replace"
     done
     
     echo ""
@@ -264,6 +320,7 @@ main() {
     local ide=""
     local skills=""
     local dry_run="false"
+    local use_symlink="false"
     local action="install"
     
     while [[ $# -gt 0 ]]; do
@@ -286,6 +343,10 @@ main() {
                 ;;
             --list)
                 action="list"
+                shift
+                ;;
+            --link)
+                use_symlink="true"
                 shift
                 ;;
             --dry-run)
@@ -315,7 +376,7 @@ main() {
                 exit 1
             fi
             validate_ide "$ide"
-            install_skills "$ide" "$skills" "$dry_run"
+            install_skills "$ide" "$skills" "$dry_run" "$use_symlink"
             ;;
     esac
 }
