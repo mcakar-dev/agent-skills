@@ -13,15 +13,15 @@
 # Supported IDEs: antigravity, cursor, windsurf
 # ==============================================================================
 
-set -eo pipefail
+set -euo pipefail
 
 # ==============================================================================
 # Configuration
 # ==============================================================================
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="$(dirname "$SCRIPT_DIR")"
-SKILLS_DIR="$REPO_ROOT/skills"
+readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+readonly REPO_ROOT="$(dirname "$SCRIPT_DIR")"
+readonly SKILLS_DIR="$REPO_ROOT/skills"
 
 get_ide_path() {
     local ide="$1"
@@ -33,7 +33,7 @@ get_ide_path() {
     esac
 }
 
-SUPPORTED_IDES="antigravity cursor windsurf"
+readonly SUPPORTED_IDES="antigravity cursor windsurf"
 
 # ==============================================================================
 # Colors
@@ -101,6 +101,15 @@ EXAMPLES:
 EOF
 }
 
+# Validates if a given path is a valid skill directory
+# A valid skill must be a directory containing SKILL.md
+# Usage: is_valid_skill "/path/to/skill"
+# Returns: 0 if valid, 1 if invalid
+is_valid_skill() {
+    local skill_path="$1"
+    [[ -d "$skill_path" && -f "$skill_path/SKILL.md" ]]
+}
+
 list_skills() {
     echo "Available skills:"
     echo ""
@@ -111,19 +120,16 @@ list_skills() {
     fi
     
     for skill_dir in "$SKILLS_DIR"/*/; do
-        if [[ -d "$skill_dir" ]]; then
-            skill_name=$(basename "$skill_dir")
-            if [[ "$skill_name" != ".DS_Store" ]]; then
-                if [[ -f "$skill_dir/SKILL.md" ]]; then
-                    description=$(grep -m1 "^description:" "$skill_dir/SKILL.md" 2>/dev/null | sed 's/^description: *//' | head -c 60)
-                    if [[ -n "$description" ]]; then
-                        printf "  %-30s %s...\n" "$skill_name" "$description"
-                    else
-                        printf "  %s\n" "$skill_name"
-                    fi
-                else
-                    printf "  %-30s %s\n" "$skill_name" "(missing SKILL.md)"
-                fi
+        local skill_name
+        skill_name=$(basename "$skill_dir")
+        
+        if is_valid_skill "$skill_dir"; then
+            local description
+            description=$(grep -m1 "^description:" "$skill_dir/SKILL.md" 2>/dev/null | sed 's/^description: *//' | head -c 60)
+            if [[ -n "$description" ]]; then
+                printf "  %-30s %s...\n" "$skill_name" "$description"
+            else
+                printf "  %s\n" "$skill_name"
             fi
         fi
     done
@@ -139,6 +145,7 @@ validate_ide() {
         print_error "Unsupported IDE: $ide"
         echo ""
         echo "Supported IDEs:"
+        local i
         for i in $SUPPORTED_IDES; do
             echo "  - $i"
         done
@@ -151,24 +158,26 @@ get_skills_to_install() {
     local skills_to_install=()
     
     if [[ -z "$skills_arg" ]]; then
+        # Install all valid skills
         for skill_dir in "$SKILLS_DIR"/*/; do
-            if [[ -d "$skill_dir" ]]; then
+            if is_valid_skill "$skill_dir"; then
+                local skill_name
                 skill_name=$(basename "$skill_dir")
-                if [[ "$skill_name" != ".DS_Store" && -f "$skill_dir/SKILL.md" ]]; then
-                    skills_to_install+=("$skill_name")
-                fi
+                skills_to_install+=("$skill_name")
             fi
         done
     else
+        # Install specific skills
         IFS=',' read -ra requested_skills <<< "$skills_arg"
         for skill in "${requested_skills[@]}"; do
-            skill=$(echo "$skill" | xargs)
-            if [[ -d "$SKILLS_DIR/$skill" ]]; then
-                if [[ -f "$SKILLS_DIR/$skill/SKILL.md" ]]; then
-                    skills_to_install+=("$skill")
-                else
-                    print_warning "Skill '$skill' is missing SKILL.md, skipping"
-                fi
+            skill="${skill#"${skill%%[![:space:]]*}"}" # trim leading
+            skill="${skill%"${skill##*[![:space:]]}"}" # trim trailing
+            local skill_path="$SKILLS_DIR/$skill"
+            
+            if is_valid_skill "$skill_path"; then
+                skills_to_install+=("$skill")
+            elif [[ -d "$skill_path" ]]; then
+                print_warning "Skill '$skill' is missing SKILL.md, skipping"
             else
                 print_warning "Skill '$skill' not found, skipping"
             fi
@@ -260,11 +269,19 @@ main() {
     while [[ $# -gt 0 ]]; do
         case "$1" in
             --ide)
-                ide="${2:-}"
+                if [[ -z "${2:-}" ]]; then
+                    print_error "Option --ide requires an argument"
+                    exit 1
+                fi
+                ide="$2"
                 shift 2
                 ;;
             --skills)
-                skills="${2:-}"
+                if [[ -z "${2:-}" ]]; then
+                    print_error "Option --skills requires an argument"
+                    exit 1
+                fi
+                skills="$2"
                 shift 2
                 ;;
             --list)
