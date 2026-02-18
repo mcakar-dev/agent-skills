@@ -1,5 +1,5 @@
 ---
-name: script-review
+name: bash-script-reviewer
 description: Reviews shell scripts for Clean Code, SOLID, DRY, KISS, and YAGNI violations. Use when the user requests script review, mentions bash/shell code quality, or wants to fix script issues.
 ---
 

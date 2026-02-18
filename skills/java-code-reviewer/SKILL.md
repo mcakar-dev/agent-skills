@@ -1,5 +1,5 @@
 ---
-name: java-code-review
+name: java-code-reviewer
 description: Reviews Java code for Clean Code, OOP, SOLID, and Design Pattern violations. Use when the user requests code review, mentions staged changes, security audit, or architecture analysis for Java/Spring Boot projects.
 ---
 
