@@ -9,10 +9,14 @@ FAIL_COUNT=0
 assert_output_contains() {
     local description="$1"
     local expected_substring="$2"
-    local input="$3"
-    shift 3
+    local input="${3:-}"
+    shift 3 2>/dev/null || shift 2
     local output
-    output=$(echo "$input" | "$@" 2>&1) || true
+    if [[ -n "$input" ]]; then
+        output=$(echo "$input" | "$@" 2>&1) || true
+    else
+        output=$("$@" 2>&1) || true
+    fi
     if [[ "$output" == *"$expected_substring"* ]]; then
         echo "✅ PASS: ${description}"
         ((PASS_COUNT++)) || true
@@ -24,22 +28,26 @@ assert_output_contains() {
     fi
 }
 
-assert_output_contains_no_input() {
+assert_exit_code() {
     local description="$1"
-    local expected_substring="$2"
+    local expected_code="$2"
     shift 2
-    local output
-    output=$("$@" 2>&1) || true
-    if [[ "$output" == *"$expected_substring"* ]]; then
+    local actual_code
+    "$@" >/dev/null 2>&1
+    actual_code=$?
+    if [[ "$actual_code" -eq "$expected_code" ]]; then
         echo "✅ PASS: ${description}"
         ((PASS_COUNT++)) || true
     else
         echo "❌ FAIL: ${description}"
-        echo "   Expected to contain: '${expected_substring}'"
-        echo "   Actual output (first 300 chars): '${output:0:300}'"
+        echo "   Expected exit code: ${expected_code}, Actual: ${actual_code}"
         ((FAIL_COUNT++)) || true
     fi
 }
+
+# ==============================================================================
+# Interactive Mode Tests
+# ==============================================================================
 
 echo "━━━ Interactive Mode Tests ━━━"
 echo ""
@@ -68,15 +76,140 @@ assert_output_contains \
     $'1\nb\n4' \
     bash "$SCRIPT_UNDER_TEST" --interactive
 
-assert_output_contains_no_input \
+# ==============================================================================
+# CLI Help & List Tests
+# ==============================================================================
+
+echo ""
+echo "━━━ CLI Help & List Tests ━━━"
+echo ""
+
+assert_output_contains \
     "given_help_flag_when_run_then_mentions_interactive" \
     "--interactive" \
+    "" \
     bash "$SCRIPT_UNDER_TEST" --help
 
-assert_output_contains_no_input \
-    "given_existing_flags_when_used_then_still_work" \
+assert_output_contains \
+    "given_help_flag_when_run_then_shows_supported_ides" \
+    "antigravity" \
+    "" \
+    bash "$SCRIPT_UNDER_TEST" --help
+
+assert_output_contains \
+    "given_list_flag_when_run_then_shows_available_skills" \
     "Available skills:" \
+    "" \
     bash "$SCRIPT_UNDER_TEST" --list
+
+# ==============================================================================
+# CLI Dry-Run Tests
+# ==============================================================================
+
+echo ""
+echo "━━━ CLI Dry-Run Tests ━━━"
+echo ""
+
+assert_output_contains \
+    "given_ide_flag_with_dry_run_when_run_then_shows_dry_run_warning" \
+    "DRY RUN" \
+    "" \
+    bash "$SCRIPT_UNDER_TEST" --ide agents --dry-run
+
+assert_output_contains \
+    "given_ide_install_with_dry_run_when_run_then_shows_would_install" \
+    "Would install" \
+    "" \
+    bash "$SCRIPT_UNDER_TEST" --ide agents --dry-run
+
+assert_output_contains \
+    "given_full_install_with_dry_run_when_run_then_shows_dry_run" \
+    "DRY RUN" \
+    "" \
+    bash "$SCRIPT_UNDER_TEST" --full-install --dry-run
+
+assert_output_contains \
+    "given_remove_with_dry_run_when_run_then_shows_removing" \
+    "Removing skills from agents" \
+    "" \
+    bash "$SCRIPT_UNDER_TEST" --remove --ide agents --dry-run
+
+# ==============================================================================
+# Error Path Tests
+# ==============================================================================
+
+echo ""
+echo "━━━ Error Path Tests ━━━"
+echo ""
+
+assert_output_contains \
+    "given_unknown_option_when_run_then_shows_error" \
+    "Unknown option" \
+    "" \
+    bash "$SCRIPT_UNDER_TEST" --bogus
+
+assert_exit_code \
+    "given_unknown_option_when_run_then_exits_non_zero" \
+    1 \
+    bash "$SCRIPT_UNDER_TEST" --bogus
+
+assert_output_contains \
+    "given_remove_without_ide_when_run_then_shows_error" \
+    "Missing required option: --ide" \
+    "" \
+    bash "$SCRIPT_UNDER_TEST" --remove
+
+assert_exit_code \
+    "given_remove_without_ide_when_run_then_exits_non_zero" \
+    1 \
+    bash "$SCRIPT_UNDER_TEST" --remove
+
+assert_output_contains \
+    "given_ide_without_argument_when_run_then_shows_error" \
+    "Option --ide requires an argument" \
+    "" \
+    bash "$SCRIPT_UNDER_TEST" --ide
+
+assert_output_contains \
+    "given_invalid_ide_when_run_then_shows_unsupported_error" \
+    "Unsupported IDE" \
+    "" \
+    bash "$SCRIPT_UNDER_TEST" --ide nonexistent-ide --dry-run
+
+assert_exit_code \
+    "given_invalid_ide_when_run_then_exits_non_zero" \
+    1 \
+    bash "$SCRIPT_UNDER_TEST" --ide nonexistent-ide --dry-run
+
+assert_output_contains \
+    "given_invalid_skill_when_run_then_shows_not_found_warning" \
+    "not found, skipping" \
+    "" \
+    bash "$SCRIPT_UNDER_TEST" --ide agents --skills nonexistent-skill,bash-script-generator --dry-run
+
+# ==============================================================================
+# Force & Link Flag Tests
+# ==============================================================================
+
+echo ""
+echo "━━━ Force & Link Flag Tests ━━━"
+echo ""
+
+assert_output_contains \
+    "given_link_flag_with_dry_run_when_run_then_shows_symlink_mode" \
+    "symbolic links" \
+    "" \
+    bash "$SCRIPT_UNDER_TEST" --ide agents --link --dry-run
+
+assert_output_contains \
+    "given_full_install_link_dry_run_when_run_then_shows_symlink_mode" \
+    "symbolic links" \
+    "" \
+    bash "$SCRIPT_UNDER_TEST" --full-install --link --dry-run
+
+# ==============================================================================
+# Results
+# ==============================================================================
 
 echo ""
 echo "━━━ Results: ${PASS_COUNT} passed, ${FAIL_COUNT} failed ━━━"
