@@ -48,7 +48,10 @@ cd agent-skills
 # Make the installer executable
 chmod +x scripts/install-skills.sh
 
-# Install all skills to your IDE (skips already installed)
+# Launch the interactive wizard (no flags needed)
+./scripts/install-skills.sh
+
+# Or use flags directly
 ./scripts/install-skills.sh --ide antigravity
 
 # Install to ALL supported IDEs at once
@@ -59,6 +62,8 @@ chmod +x scripts/install-skills.sh
 
 | Command | Description |
 |---------|-------------|
+| *(no args)* | Launch interactive wizard — guided step-by-step setup |
+| `--interactive` | Explicitly launch the interactive wizard |
 | `--ide <name>` | Install skills to a specific IDE (incremental — skips existing) |
 | `--remove --ide <name>` | Remove all installed skills from a specific IDE |
 | `--full-install` | Install skills to all supported IDEs |
@@ -72,6 +77,9 @@ chmod +x scripts/install-skills.sh
 ### Examples
 
 ```bash
+# Interactive wizard — walks you through everything
+./scripts/install-skills.sh
+
 # Install missing skills to Cursor
 ./scripts/install-skills.sh --ide cursor
 
