@@ -9,6 +9,7 @@ A collection of reusable AI agent skills for agentic IDEs. Each skill defines a 
 | `bash-script-generator` | Generates production-ready Bash scripts following TDD, Clean Code, SOLID, DRY, KISS, and YAGNI principles |
 | `bash-script-reviewer` | Reviews shell scripts for Clean Code, SOLID, DRY, KISS, and YAGNI violations |
 | `blog-post-writer` | Generates production-ready technical blog posts following Jekyll format |
+| `blog-post-reviewer` | Reviews technical blog posts for OOP/SOLID violations, Clean Code, and technical accuracy |
 | `commit-message-generator` | Generates conventional commit messages by analyzing staged git changes |
 | `document-generator` | Generates Technical Design Documents (TDD) in English and Turkish |
 | `eng-to-tr-translator` | Translates English text to Turkish while preserving technical terms |
@@ -118,10 +119,6 @@ name: your-skill-name
 description: What it does. Use when [activation triggers].
 ---
 ```
-
-## Contributing
-
-See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on adding new skills.
 
 ## License
 
