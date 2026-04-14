@@ -227,6 +227,18 @@ Use template: [assets/story-breakdown-template.md](assets/story-breakdown-templa
 
 See [references/INVEST.md](references/INVEST.md) for detailed INVEST definitions and examples.
 
+### Save output file
+
+> **`<workspace_root>`**: VS Code workspace root folder if available; otherwise the active git repository root (`git rev-parse --show-toplevel`).
+
+Save the completed breakdown to:
+
+```
+<workspace_root>/ai/<ISSUE_KEY>/document/stories_<ISSUE_KEY>.md
+```
+
+**Next Skill:** Use the **document-generator** skill to create a Technical Design Document for the parent issue.
+
 ---
 
 ## Quick reference

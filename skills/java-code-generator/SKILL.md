@@ -31,6 +31,8 @@ Code Generation Progress:
 
 ## Phase 0: Input & Context
 
+> **`<workspace_root>`**: VS Code workspace root folder if available; otherwise the active git repository root (`git rev-parse --show-toplevel`).
+
 ### Gather requirements
 
 1. **Ask for Issue Key:**
@@ -42,9 +44,10 @@ Code Generation Progress:
    ```
 
 3. **Decision tree:**
-   - **IF Issue Key provided:** Read `<workspace>/ai/<ISSUE_KEY>/document/doc_<ISSUE_KEY>_ENG.md`
-   - **IF document exists:** Analyze requirements from document.
-   - **IF no document:** Analyze user prompt for requirements.
+   - **IF Issue Key provided:**
+     - **IF document exists** at `<workspace_root>/ai/<ISSUE_KEY>/document/doc_<ISSUE_KEY>_ENG.md`: Analyze requirements from document.
+     - **IF no document:** Analyze user prompt for requirements.
+   - **IF no Issue Key:** Analyze user prompt for requirements.
 
 > [!CAUTION]
 > **IF requirements are UNCLEAR → STOP. Ask clarifying questions. Do NOT assume or guess. Do NOT proceed until all ambiguities are resolved.**
@@ -335,7 +338,7 @@ public ResponseEntity<UserResponse> createUser(@Valid @RequestBody CreateUserReq
 
 ## Phase 4: Verification Loop
 
-**MAX_RETRIES = 10**
+**MAX_RETRIES = 3**
 
 ### Step 1: Run tests
 
@@ -356,7 +359,7 @@ mvn compile -pl <module>
 | Build fails | Fix compilation errors |
 | Tests fail | Debug and fix implementation |
 | All pass | Proceed to Phase 5 |
-| Retries > 10 | HALT. Report blocking issue to user. |
+| Retries > 3 | HALT. Report blocking issue to user. |
 
 ### Step 3: Coverage check (if available)
 

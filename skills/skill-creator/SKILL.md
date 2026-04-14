@@ -135,7 +135,7 @@ metadata:
 
 ### Body structure template
 
-See [templates/skill-template.md](assets/skill-template.md) for full template.
+See [assets/skill-template.md](assets/skill-template.md) for full template.
 
 Key sections:
 1. **When to use** - Activation triggers

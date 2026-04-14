@@ -174,7 +174,7 @@ Mockito.verify(repository).save(Mockito.argThat(u ->
 
 ## Phase 4: Validation Loop
 
-**MAX_RETRIES = 10**
+**MAX_RETRIES = 3**
 
 Repeat this cycle:
 
@@ -207,7 +207,7 @@ diff-cover target/site/jacoco/jacoco.xml \
 | Coverage == 100% | Proceed to Phase 5 |
 | Coverage < 100% | Read missing lines, generate targeted tests |
 | diff-cover unavailable | Use JaCoCo HTML report manually |
-| Retries > 10 | HALT. Report: `"Unable to achieve 100% delta coverage. Manual intervention required for: [uncovered lines]"` |
+| Retries > 3 | HALT. Report: `"Unable to achieve 100% delta coverage. Manual intervention required for: [uncovered lines]"` |
 
 ### Step 3: Analyze uncovered lines
 
@@ -255,7 +255,8 @@ Files:
   - [TestClass2.java]
 
 diff-cover Summary:
-[paste summary]
+  Total: [X]% coverage on changed lines
+  Missing: [list any uncovered lines or "none"]
 ```
 
 ### Failure output

@@ -31,6 +31,8 @@ Script Generation Progress:
 
 ## Phase 0: Input & Context
 
+> **`<workspace_root>`**: VS Code workspace root folder if available; otherwise the active git repository root (`git rev-parse --show-toplevel`).
+
 ### Gather requirements
 
 1. **Ask what the script should do:**
@@ -359,7 +361,7 @@ trap cleanup EXIT
 
 ## Phase 4: Verification Loop
 
-**MAX_RETRIES = 10**
+**MAX_RETRIES = 3**
 
 ### Step 1: Syntax check
 
@@ -396,7 +398,7 @@ ls -la script-name.sh
 | ShellCheck warning | Fix or add directive with justification |
 | Tests fail | Debug and fix implementation |
 | All pass | Proceed to Phase 5 |
-| Retries > 10 | HALT. Report blocking issue to user. |
+| Retries > 3 | HALT. Report blocking issue to user. |
 
 ---
 

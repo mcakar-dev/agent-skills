@@ -51,6 +51,7 @@ ABC-1234_some_description
 ```
 
 **Decision tree:**
+- **IF output is `HEAD`:** Detached HEAD state — no branch name available. Output: `"Detached HEAD state detected. Please provide the issue key manually."` Then proceed as if no key found.
 - **IF key found:** Store for use in commit footer.
 - **IF no key found:** Ask user:
   ```
@@ -192,16 +193,16 @@ BREAKING CHANGE: JWT tokens now expire after 1 hour instead of 24 hours.
 Present generated message:
 
 ```
-📝 Generated Commit Message:
+Generated Commit Message:
 
 ---
 <generated message here>
 ---
 
 Options:
-1. ✅ Use this message (I will run `git commit`)
-2. ✏️ Edit (provide your changes)
-3. 🔄 Regenerate with different type/scope
+1. Use this message (I will run `git commit`)
+2. Edit (provide your changes)
+3. Regenerate with different type/scope
 ```
 
 **On approval:** Run `git commit -m "<message>"` (or with `-m` for body if present)

@@ -159,6 +159,8 @@ Use template: [assets/review-template.md](assets/review-template.md)
 
 ### Create output file
 
+> **`<workspace_root>`**: VS Code workspace root folder if available; otherwise the active git repository root (`git rev-parse --show-toplevel`).
+
 ```
 <workspace_root>/ai/<issue-key>/review/review-<YYYY-MM-DD-HHmm>.md
 ```
@@ -176,7 +178,7 @@ I have identified [X] issues ([Y] CRITICAL, [Z] MAJOR, [W] MINOR).
 
 Would you like me to:
 1. Apply the CRITICAL fixes automatically?
-2. Generate Unit Tests for these changes?
+2. Generate Unit Tests for these changes? (invoke: **java-unit-test-writer** skill)
 3. Show detailed architectural implications?
 ```
 

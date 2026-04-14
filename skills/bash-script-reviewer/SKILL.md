@@ -24,7 +24,8 @@ Script Review Progress:
 - [ ] Phase 2: Analysis
 - [ ] Phase 3: Reporting
 - [ ] Phase 4: Verification
-- [ ] Phase 5: Action Triggers
+- [ ] Phase 5: Output
+- [ ] Phase 6: Action Triggers
 ```
 
 ---
@@ -143,7 +144,31 @@ Use template: [assets/review-template.md](assets/review-template.md)
 
 ---
 
-## Phase 5: Action Triggers
+## Phase 5: Output
+
+### Extract issue key
+
+1. Get branch name:
+   ```bash
+   git rev-parse --abbrev-ref HEAD
+   ```
+2. Extract Jira key pattern (e.g., `ABC-1234`) from branch name.
+3. **IF output is `HEAD`:** Detached HEAD state — ask user to provide the issue key manually.
+4. **IF no key found:** Ask user to provide issue key.
+
+### Save review file
+
+> **`<workspace_root>`**: VS Code workspace root folder if available; otherwise the active git repository root (`git rev-parse --show-toplevel`).
+
+```
+<workspace_root>/ai/<issue-key>/review/review-<YYYY-MM-DD-HHmm>.md
+```
+
+Example: `ai/EIN-1588/review/review-2026-01-29-0200.md`
+
+---
+
+## Phase 6: Action Triggers
 
 After listing all issues, end with:
 

@@ -30,10 +30,10 @@ Copy this checklist and track progress:
 ```
 Blog Post Creation Progress:
 - [ ] Step 1: Receive topic from user
-- [ ] Step 2: Research and understand the topic
-- [ ] Step 3: Map topic to article structure
-- [ ] Step 4: Generate cover image
-- [ ] Step 5: Write full markdown article
+- [ ] Step 2: Clone style and research topic
+- [ ] Step 3: Generate cover image
+- [ ] Step 4: Write full markdown article
+- [ ] Step 5: Apply adaptability rules
 - [ ] Step 6: Save to _posts directory
 ```
 
@@ -106,6 +106,9 @@ Small diamond logo in bottom-right corner. Professional, modern, clean.
 ```
 
 **Save the image to:** `[workspace]/assets/img/posts/[YYYY-MM-DD]-[slug].png`
+
+> [!NOTE]
+> **IF `generate_image` tool is unavailable:** Skip image generation. Set a placeholder path: `assets/img/posts/[YYYY-MM-DD]-[slug].png` and continue to Step 4.
 
 See [IMAGE_STYLE.md](references/IMAGE_STYLE.md) for detailed specifications.
 

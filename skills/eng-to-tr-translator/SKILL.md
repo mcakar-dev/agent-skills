@@ -59,6 +59,8 @@ Translation Progress:
    Unrecognized term: "<term>". Keep in English or translate?
    ```
 
+5. **Count tagged terms.** Maintain a running total of all protected term occurrences. This count is reported in the Phase 5 output summary.
+
 ---
 
 ## Phase 3: Translation

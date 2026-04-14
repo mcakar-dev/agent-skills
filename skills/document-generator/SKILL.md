@@ -29,6 +29,8 @@ Document Generation Progress:
 
 ## Phase 0: Check existing examples
 
+> **`<workspace_root>`**: VS Code workspace root folder if available; otherwise the active git repository root (`git rev-parse --show-toplevel`).
+
 1. Search for existing documents:
    ```bash
    find <workspace_root>/ai -name "doc_*_ENG.md" -o -name "doc_*_TR.md" 2>/dev/null | head -5
@@ -56,6 +58,9 @@ Ask for:
 ### Check for existing files
 
 If files exist, ask: **"Files exist. Overwrite or Update?"**
+
+- **Overwrite:** Delete existing content and regenerate from scratch.
+- **Update:** Ask which sections to revise, then apply targeted changes only.
 
 ---
 
@@ -107,6 +112,8 @@ Documents created:
 
 **Next Step:** Review the 'Risks' section. I have highlighted [X] potential failure points.
 ```
+
+**Next Skill:** Use the **java-code-generator** skill to implement the documented feature.
 
 ---
 
