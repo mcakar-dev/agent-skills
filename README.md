@@ -19,6 +19,42 @@ A collection of reusable AI agent skills for agentic IDEs. Each skill defines a 
 | `skill-creator` | Creates new Agent Skills following the open specification |
 | `story-splitter` | Splits requirements into INVEST-compliant user stories using vertical slicing |
 
+## Output Structure
+
+Skills that produce file artifacts write their output under a unified `ai/` directory in the workspace root:
+
+```
+<workspace_root>/ai/<ISSUE_KEY>/
+├── document/          — Technical Design Documents, story breakdowns
+│   ├── doc_<ISSUE_KEY>_ENG.md
+│   ├── doc_<ISSUE_KEY>_TR.md
+│   └── stories_<ISSUE_KEY>.md
+└── review/            — Code review reports, script review reports
+    └── review-<YYYY-MM-DD-HHmm>.md
+```
+
+> `<workspace_root>` is the VS Code workspace root folder if available; otherwise the active git repository root (`git rev-parse --show-toplevel`).
+
+## Skill Chains
+
+Skills are designed to be composed in sequence. Each skill's final phase references the next recommended skill:
+
+```
+story-splitter  ──►  document-generator  ──►  java-code-generator
+                                                      │
+                                              java-code-reviewer
+                                                      │
+                                              java-unit-test-writer
+```
+
+| Trigger | Skill | Produces | Next Skill |
+|---------|-------|---------|-----------|
+| Large requirement | `story-splitter` | `stories_<KEY>.md` | `document-generator` |
+| Jira issue | `document-generator` | `doc_<KEY>_ENG.md`, `doc_<KEY>_TR.md` | `java-code-generator` |
+| TDD document ready | `java-code-generator` | Source + test files | `java-code-reviewer` |
+| Code changes staged | `java-code-reviewer` | `review-<timestamp>.md` | `java-unit-test-writer` |
+| Script changes staged | `bash-script-reviewer` | `review-<timestamp>.md` | — |
+
 ## Supported IDEs
 
 | IDE | Skills Path |
