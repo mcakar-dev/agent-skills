@@ -160,10 +160,10 @@ Use template: [assets/review-template.md](assets/review-template.md)
 ### Create output file
 
 ```
-<workspace_root>/review/<issue-key>/review-<YYYY-MM-DD-HHmm>.md
+<workspace_root>/ai/<issue-key>/review/review-<YYYY-MM-DD-HHmm>.md
 ```
 
-Example: `review/EIN-1588/review-2026-01-29-0200.md`
+Example: `ai/EIN-1588/review/review-2026-01-29-0200.md`
 
 ---
 

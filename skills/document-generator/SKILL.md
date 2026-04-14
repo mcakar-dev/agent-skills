@@ -31,7 +31,7 @@ Document Generation Progress:
 
 1. Search for existing documents:
    ```bash
-   find <workspace_root>/documents -name "doc_*_ENG.md" -o -name "doc_*_TR.md" 2>/dev/null | head -5
+   find <workspace_root>/ai -name "doc_*_ENG.md" -o -name "doc_*_TR.md" 2>/dev/null | head -5
    ```
 
 2. If found, analyze structure for consistency with new documents.
@@ -49,8 +49,8 @@ Ask for:
 ### Define output paths
 
 ```
-<workspace_root>/documents/<ISSUE_KEY>/doc_<ISSUE_KEY>_ENG.md
-<workspace_root>/documents/<ISSUE_KEY>/doc_<ISSUE_KEY>_TR.md
+<workspace_root>/ai/<ISSUE_KEY>/document/doc_<ISSUE_KEY>_ENG.md
+<workspace_root>/ai/<ISSUE_KEY>/document/doc_<ISSUE_KEY>_TR.md
 ```
 
 ### Check for existing files
@@ -82,13 +82,13 @@ Generate TWO files with technically identical content but localized language.
 
 ### English Document
 
-**File:** `<workspace_root>/documents/<ISSUE_KEY>/doc_<ISSUE_KEY>_ENG.md`
+**File:** `<workspace_root>/ai/<ISSUE_KEY>/document/doc_<ISSUE_KEY>_ENG.md`
 
 Use template: [assets/template-eng.md](assets/template-eng.md)
 
 ### Turkish Document
 
-**File:** `<workspace_root>/documents/<ISSUE_KEY>/doc_<ISSUE_KEY>_TR.md`
+**File:** `<workspace_root>/ai/<ISSUE_KEY>/document/doc_<ISSUE_KEY>_TR.md`
 
 Use template: [assets/template-tr.md](assets/template-tr.md)
 
@@ -102,8 +102,8 @@ After creating files, output:
 
 ```
 Documents created:
-- `<workspace_root>/documents/<ISSUE_KEY>/doc_<ISSUE_KEY>_ENG.md`
-- `<workspace_root>/documents/<ISSUE_KEY>/doc_<ISSUE_KEY>_TR.md`
+- `<workspace_root>/ai/<ISSUE_KEY>/document/doc_<ISSUE_KEY>_ENG.md`
+- `<workspace_root>/ai/<ISSUE_KEY>/document/doc_<ISSUE_KEY>_TR.md`
 
 **Next Step:** Review the 'Risks' section. I have highlighted [X] potential failure points.
 ```

@@ -38,11 +38,11 @@ Code Generation Progress:
 
 2. **Check for Technical Design Document:**
    ```bash
-   find <workspace_root>/documents -name "doc_*_ENG.md" 2>/dev/null | head -5
+   find <workspace_root>/ai -name "doc_*_ENG.md" 2>/dev/null | head -5
    ```
 
 3. **Decision tree:**
-   - **IF Issue Key provided:** Read `<workspace>/documents/<ISSUE_KEY>/doc_<ISSUE_KEY>_ENG.md`
+   - **IF Issue Key provided:** Read `<workspace>/ai/<ISSUE_KEY>/document/doc_<ISSUE_KEY>_ENG.md`
    - **IF document exists:** Analyze requirements from document.
    - **IF no document:** Analyze user prompt for requirements.
 
