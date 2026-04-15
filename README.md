@@ -11,6 +11,7 @@ A collection of reusable AI agent skills for agentic IDEs. Each skill defines a 
 | `blog-post-writer` | Generates production-ready technical blog posts following Jekyll format |
 | `blog-post-reviewer` | Reviews technical blog posts for OOP/SOLID violations, Clean Code, and technical accuracy |
 | `commit-message-generator` | Generates conventional commit messages by analyzing staged git changes |
+| `demo-generator` | Generates interactive sprint demo presentations (HTML/CSS/JS) for non-technical stakeholders |
 | `document-generator` | Generates Technical Design Documents (TDD) in English and Turkish |
 | `eng-to-tr-translator` | Translates English text to Turkish while preserving technical terms |
 | `java-code-generator` | Generates Java code following TDD and Clean Architecture principles |
@@ -29,8 +30,12 @@ Skills that produce file artifacts write their output under a unified `ai/` dire
 │   ├── doc_<ISSUE_KEY>_ENG.md
 │   ├── doc_<ISSUE_KEY>_TR.md
 │   └── stories_<ISSUE_KEY>.md
-└── review/            — Code review reports, script review reports
-    └── review-<YYYY-MM-DD-HHmm>.md
+├── review/            — Code review reports, script review reports
+│   └── review-<YYYY-MM-DD-HHmm>.md
+└── demo/              — Interactive sprint demo presentations
+    ├── index.html
+    ├── style.css
+    └── app.js
 ```
 
 > `<workspace_root>` is the VS Code workspace root folder if available; otherwise the active git repository root (`git rev-parse --show-toplevel`).
@@ -54,6 +59,7 @@ story-splitter  ──►  document-generator  ──►  java-code-generator
 | TDD document ready | `java-code-generator` | Source + test files | `java-code-reviewer` |
 | Code changes staged | `java-code-reviewer` | `review-<timestamp>.md` | `java-unit-test-writer` |
 | Script changes staged | `bash-script-reviewer` | `review-<timestamp>.md` | — |
+| Sprint review approaching | `demo-generator` | `index.html`, `style.css`, `app.js` | — |
 
 ## Supported IDEs
 
