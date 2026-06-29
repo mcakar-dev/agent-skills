@@ -195,18 +195,18 @@ install_skills() {
         if [[ -d "$dest_dir" || -L "$dest_dir" ]]; then
             if [[ "$force" == "true" ]]; then
                 install_single_skill "$skill" "$source_dir" "$dest_dir" "$dry_run" "$use_symlink" "true"
-                ((replaced_count++))
+                ((replaced_count++)) || true
             else
                 if [[ "$dry_run" == "true" ]]; then
                     echo "  Would skip (already exists): $skill"
                 else
                     print_info "Already installed, skipping: $skill"
                 fi
-                ((skipped_count++))
+                ((skipped_count++)) || true
             fi
         else
             install_single_skill "$skill" "$source_dir" "$dest_dir" "$dry_run" "$use_symlink" "false"
-            ((installed_count++))
+            ((installed_count++)) || true
         fi
     done
 
@@ -250,7 +250,7 @@ remove_skills() {
                 safe_remove_dir "$skill_dir"
                 print_success "Removed: $skill_name"
             fi
-            ((removed_count++))
+            ((removed_count++)) || true
         else
             print_warning "Skipping non-skill directory: $skill_name"
         fi
