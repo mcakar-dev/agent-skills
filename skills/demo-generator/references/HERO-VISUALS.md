@@ -172,11 +172,12 @@ This reference contains the HTML skeletons, CSS, and toggle behavior for each he
 
 ```javascript
 function applyPhoneState(state) {
-    var isBefore = state === 'before';
-    var keyRow   = document.getElementById('psKeyRow');
-    var keyValue = document.getElementById('psKeyValue');
+    var isBefore   = state === 'before';
+    var keyRow     = document.getElementById('psKeyRow');
+    var keyValue   = document.getElementById('psKeyValue');
     var stateLabel = document.getElementById('phoneStateLabel');
     var glowBg     = document.getElementById('phoneGlowBg');
+    if (!keyRow || !keyValue) return;
 
     if (isBefore) {
         keyRow.classList.remove('state-good');
@@ -382,16 +383,18 @@ var COUNTER_DATA = {
 
 function updateCounters(state) {
     var data = COUNTER_DATA[state];
+    if (!data) return;
     Object.keys(data).forEach(function (key) {
         applyCounter('stat' + key, data[key]);
     });
     var panel = document.getElementById('sysPanel');
-    panel.classList.toggle('panel-good', state === 'after');
+    if (panel) panel.classList.toggle('panel-good', state === 'after');
 }
 
 function applyCounter(elementId, data) {
     var el     = document.getElementById(elementId);
     var noteEl = document.getElementById(elementId + 'Note');
+    if (!el) return;
     el.style.animation = 'none';
     void el.offsetWidth;
     el.style.animation = 'countFlash 0.45s ease forwards';
@@ -404,6 +407,7 @@ function applyCounter(elementId, data) {
 
 function updateButton(isBefore) {
     var btn = document.getElementById('sysBtn');
+    if (!btn) return;
     if (isBefore) {
         btn.className = 'sys-btn sys-btn-locked';
         btn.disabled  = true;
@@ -414,184 +418,4 @@ function updateButton(isBefore) {
 }
 ```
 
----
 
-## 3. Timeline
-
-**When:** Change eliminates a delay or timing issue in a process.
-
-### HTML Skeleton
-
-```html
-<div class="hero-visual">
-    <div class="timeline-wrap">
-
-        <!-- T=0 event -->
-        <div class="tl-event tl-event-start">
-            <div class="tl-event-dot tl-dot-blue"></div>
-            <div class="tl-event-body">
-                <div class="tl-label">T = 0</div>
-                <div class="tl-title">[Initial action] ✏️</div>
-                <div class="tl-sub">[Description of what happened]</div>
-            </div>
-        </div>
-
-        <div class="tl-line"></div>
-
-        <!-- Cache/delay block — only visible in "before" state -->
-        <div class="tl-cache-block" id="tlCacheBlock">
-            <div class="tl-cache-inner">
-                <div class="tl-cache-icon">💾</div>
-                <div class="tl-cache-text">
-                    <strong>[Delay reason]</strong>
-                    <span id="tlCacheTime">[duration description]</span>
-                </div>
-            </div>
-        </div>
-
-        <div class="tl-line tl-line-dashed" id="tlDashedLine"></div>
-
-        <!-- Delivery event -->
-        <div class="tl-event" id="tlDeliveryEvent">
-            <div class="tl-event-dot" id="tlDeliveryDot"></div>
-            <div class="tl-event-body">
-                <div class="tl-label" id="tlDeliveryLabel">T = ?</div>
-                <div class="tl-title" id="tlDeliveryTitle">[Delivery description]</div>
-                <div class="tl-sub" id="tlDeliverySub">[Uncertainty description]</div>
-            </div>
-        </div>
-
-        <div class="tl-line tl-line-short" id="tlLineShort"></div>
-
-        <!-- End user event -->
-        <div class="tl-event tl-event-end" id="tlEndEvent">
-            <div class="tl-event-dot" id="tlEndDot"></div>
-            <div class="tl-event-body">
-                <div class="tl-label" id="tlEndLabel">[End user label]</div>
-                <div class="tl-title" id="tlEndTitle">⚠️ [Bad outcome]</div>
-                <div class="tl-sub" id="tlEndSub">[Explanation]</div>
-            </div>
-        </div>
-
-        <!-- State strip -->
-        <div class="tl-state-strip" id="tlStateStrip">
-            <span id="tlStateText">⚠ [Warning text]</span>
-        </div>
-
-    </div>
-</div>
-```
-
-### CSS Specific to Timeline
-
-```css
-.timeline-wrap {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0;
-    width: 100%;
-    max-width: 360px;
-}
-
-.tl-event {
-    display: flex;
-    align-items: flex-start;
-    gap: 1rem;
-    width: 100%;
-}
-
-.tl-event-dot {
-    width: 14px;
-    height: 14px;
-    border-radius: 50%;
-    flex-shrink: 0;
-    margin-top: 4px;
-    transition: all 0.5s ease;
-    position: relative;
-    z-index: 1;
-}
-
-.tl-dot-blue   { background: var(--blue);  box-shadow: 0 0 8px var(--blue-glow);  }
-.tl-dot-red    { background: var(--red);   box-shadow: 0 0 8px var(--red-glow);   animation: blink 1.5s ease-in-out infinite; }
-.tl-dot-green  { background: var(--green); box-shadow: 0 0 8px var(--green-glow); }
-.tl-dot-amber  { background: var(--amber); box-shadow: 0 0 8px var(--amber-glow); }
-
-.tl-line {
-    width: 2px;
-    height: 28px;
-    background: var(--border-light);
-    margin-left: 6px;
-    transition: all 0.5s ease;
-}
-
-.tl-line-dashed {
-    border-left: 2px dashed var(--border-light);
-    background: transparent;
-    height: 20px;
-    margin-left: 6px;
-}
-
-.tl-cache-block {
-    margin-left: 28px;
-    margin-bottom: 4px;
-    transition: all 0.5s ease;
-    max-height: 60px;
-    overflow: hidden;
-    opacity: 1;
-}
-
-.tl-cache-block.collapsed {
-    max-height: 0;
-    opacity: 0;
-    margin-bottom: 0;
-}
-
-.tl-cache-inner {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 0.55rem 0.9rem;
-    background: var(--amber-muted);
-    border: 1px solid rgba(251, 191, 36, 0.25);
-    border-radius: var(--radius-md);
-}
-
-.tl-state-strip {
-    margin-top: 1rem;
-    padding: 0.55rem 0.9rem;
-    border-radius: var(--radius-md);
-    font-size: 0.72rem;
-    font-weight: 600;
-    background: var(--red-muted);
-    border: 1px solid rgba(248, 113, 113, 0.2);
-    color: var(--red);
-    transition: all 0.5s ease;
-    width: 100%;
-}
-
-.tl-state-strip.strip-good {
-    background: var(--green-muted);
-    border-color: rgba(52, 211, 153, 0.25);
-    color: var(--green);
-}
-```
-
-### JS Toggle Pattern
-
-```javascript
-function updateTimeline(isBefore) {
-    var cacheBlock = document.getElementById('tlCacheBlock');
-    var stateStrip = document.getElementById('tlStateStrip');
-
-    if (isBefore) {
-        cacheBlock.classList.remove('collapsed');
-        stateStrip.classList.remove('strip-good');
-        // Update dots, labels, titles to show broken/delayed state
-    } else {
-        cacheBlock.classList.add('collapsed');
-        stateStrip.classList.add('strip-good');
-        // Update dots, labels, titles to show instant/fixed state
-    }
-}
-```

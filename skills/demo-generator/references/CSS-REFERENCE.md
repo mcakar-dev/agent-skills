@@ -620,6 +620,222 @@ body::before {
 
 ---
 
+## Two-Path Root Cause (Pattern C)
+
+> **LAYOUT RULE:** `.path-compare` uses `display: block` — NOT a multi-column grid. Only one `.path-card` is visible at a time via the `hidden` class toggle. Do NOT add `.path-vs` divider elements (unless using Pattern D `.sim-grid` for Canlı Karşılaştırma).
+
+```css
+.section-rootcause {
+    position: relative;
+    z-index: 1;
+    border-top: 1px solid var(--border);
+}
+
+.path-compare {
+    display: block;
+    margin-bottom: 2.5rem;
+}
+
+.path-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    transition: all 0.4s ease;
+}
+
+.path-bad  { border-top: 3px solid var(--red);   }
+.path-good { border-top: 3px solid var(--green); }
+
+.path-badge {
+    display: inline-block;
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    padding: 0.25rem 0.7rem;
+    border-radius: var(--radius-full);
+    align-self: flex-start;
+}
+
+.path-badge-bad  { background: var(--red-muted);   color: var(--red);   }
+.path-badge-good { background: var(--green-muted); color: var(--green); }
+
+.path-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text-heading);
+}
+
+.path-desc {
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    line-height: 1.6;
+}
+
+.path-flow {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    flex-wrap: nowrap;
+    margin-top: 0.5rem;
+    overflow: hidden;
+}
+
+.pf-node {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.3rem;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 0.6rem 0.5rem;
+    min-width: 68px;
+    text-align: center;
+    transition: all 0.4s ease;
+    flex-shrink: 0;
+}
+
+.pf-node-bad {
+    border-color: rgba(248, 113, 113, 0.3);
+    background: var(--red-muted);
+}
+
+.pf-node-good {
+    border-color: rgba(52, 211, 153, 0.3);
+    background: var(--green-muted);
+}
+
+.pfn-icon  { font-size: 1.3rem; }
+.pfn-label { font-size: 0.62rem; font-weight: 700; color: var(--text-muted); line-height: 1.3; text-align: center; }
+.pfn-sub   { font-size: 0.55rem; color: var(--text-dim); margin-top: 0.1rem; text-align: center; line-height: 1.3; }
+.pfn-sub-bad  { color: var(--red); }
+.pfn-sub-good { color: var(--green); }
+
+.pf-arrow {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    flex: 1;
+    min-width: 30px;
+}
+
+.pfa-line     { width: 100%; height: 2px; background: var(--border-light); }
+.pfa-msg      { font-size: 0.56rem; font-weight: 700; font-family: var(--font-mono); white-space: nowrap; padding: 0.15rem 0.4rem; border-radius: var(--radius-sm); }
+.pfa-msg-bad  { background: var(--red-muted);   color: var(--red);   }
+.pfa-msg-good { background: var(--green-muted); color: var(--green); }
+.pfa-tip      { font-size: 0.7rem; color: var(--text-dim); }
+
+.path-result {
+    padding: 0.5rem 0.85rem;
+    border-radius: var(--radius-md);
+    font-size: 0.75rem;
+    font-weight: 700;
+    font-family: var(--font-mono);
+}
+
+.path-result-bad  { background: var(--red-muted);   color: var(--red);   }
+.path-result-good { background: var(--green-muted); color: var(--green); }
+
+.rc-callout {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1.25rem 1.5rem;
+    background: var(--blue-muted);
+    border: 1px solid rgba(96, 165, 250, 0.2);
+    border-radius: var(--radius-xl);
+}
+
+.rcc-icon { font-size: 1.4rem; flex-shrink: 0; margin-top: 0.1rem; }
+.rcc-body { font-size: 0.85rem; color: var(--text-muted); line-height: 1.65; }
+```
+
+---
+
+## Live Simulation (Pattern D)
+
+```css
+.section-sim {
+    position: relative;
+    z-index: 1;
+    border-top: 1px solid var(--border);
+}
+
+.sim-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.sim-panel {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.sim-panel-bad  { border-top: 3px solid var(--red);   }
+.sim-panel-good { border-top: 3px solid var(--green); }
+
+.sim-panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.sim-badge {
+    display: inline-block;
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    padding: 0.25rem 0.7rem;
+    border-radius: var(--radius-full);
+}
+
+.sim-badge-bad  { background: var(--red-muted);   color: var(--red);   }
+.sim-badge-good { background: var(--green-muted); color: var(--green); }
+
+.sim-controls {
+    display: flex;
+    justify-content: center;
+    gap: 0.75rem;
+}
+
+.sim-ctrl-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.65rem 1.5rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    color: var(--text-dim);
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.sim-ctrl-both {
+    background: linear-gradient(135deg, var(--blue), var(--cyan));
+    color: #fff;
+    border-color: transparent;
+    padding: 0.75rem 2rem;
+}
+```
+
+---
+
 ## Mobile Breakpoint (640-720px)
 
 ```css
@@ -643,6 +859,10 @@ body::before {
         gap: 1rem;
     }
 
+    .sim-grid {
+        grid-template-columns: 1fr;
+    }
+
     .ba-transform { display: none; }
 }
 ```
@@ -655,4 +875,4 @@ body::before {
 |-------------|-------------|-------|
 | Phone Mockup | `420px` | Narrower — phone is compact |
 | System Panel | `520px` | Wider — panel has stat columns |
-| Timeline | `420px` | Medium — vertical layout |
+

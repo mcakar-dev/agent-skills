@@ -81,7 +81,7 @@ This is the full HTML skeleton template that every demo follows. Adapt the hero 
     <section class="section-story">
         <div class="sec-inner">
             <div class="sec-eyebrow">Ne Yaşandı?</div>
-            <h2 class="sec-title">{{Story Section Title}}</h2>
+            <h2 class="sec-title" id="storyTitle">{{Story Section Title}}</h2>
 
             <div class="story-track">
 
@@ -142,8 +142,10 @@ This is the full HTML skeleton template that every demo follows. Adapt the hero 
          C) Two-Path Pattern — for architecture/flow changes
             Uses: .section-rootcause, .path-compare, old vs new flow diagrams
          
-         D) Custom — design a new visual that fits the specific issue
+         D) Simulation Pattern (Canlı Karşılaştırma) — for side-by-side time/performance comparisons
+            Uses: .section-sim, .sim-grid, .sim-panel
          
+         E) Custom — design a new visual that fits the specific issue
          See below for each pattern's skeleton.
     -->
 
@@ -220,8 +222,8 @@ Used when the problem is a mismatch between what was sent and what was expected.
 <section class="section-mismatch">
     <div class="sec-inner">
         <div class="sec-eyebrow">Kök Neden</div>
-        <h2 class="sec-title">{{Root Cause Title — analogy preferred}}</h2>
-        <p class="sec-sub">{{1-2 sentence explanation}}</p>
+        <h2 class="sec-title" id="rcTitle">{{Root Cause Title — analogy preferred}}</h2>
+        <p class="sec-sub" id="rcSub">{{1-2 sentence explanation}}</p>
 
         <div class="mismatch-arena">
 
@@ -271,7 +273,7 @@ Used when the problem is a mismatch between what was sent and what was expected.
 
         <div class="mismatch-callout reveal" data-delay="400">
             <div class="mc-icon">💡</div>
-            <div class="mc-body" id="mcBody">
+            <div class="mc-body" id="rcCalloutBody">
                 {{Callout explanation — why this mismatch matters}}
             </div>
         </div>
@@ -287,8 +289,8 @@ Used when there are two (or more) distinct bugs contributing to the problem.
 <section class="section-bugs">
     <div class="sec-inner">
         <div class="sec-eyebrow">Kök Neden</div>
-        <h2 class="sec-title">{{Root Cause Question}}</h2>
-        <p class="sec-sub">{{Brief explanation}}</p>
+        <h2 class="sec-title" id="rcTitle">{{Root Cause Question}}</h2>
+        <p class="sec-sub" id="rcSub">{{Brief explanation}}</p>
 
         <div class="bugs-grid">
 
@@ -335,16 +337,19 @@ Used when there are two (or more) distinct bugs contributing to the problem.
 
 Used when the solution changes the flow or architecture of a process.
 
+> [!IMPORTANT]
+> **This is NOT a side-by-side comparison.** Only one card is visible at a time. The toggle switches between the old and new path. `.path-compare` uses `display: block` — do NOT use multi-column grid or add a VS divider element (Unless you specifically need Pattern D: Simulation).
+
 ```html
 <section class="section-rootcause">
     <div class="sec-inner">
         <div class="sec-eyebrow">Kök Neden</div>
-        <h2 class="sec-title">{{Root Cause Title}}</h2>
-        <p class="sec-sub">{{Explanation}}</p>
+        <h2 class="sec-title" id="rcTitle">{{Root Cause Title}}</h2>
+        <p class="sec-sub" id="rcSub">{{Explanation}}</p>
 
         <div class="path-compare">
 
-            <!-- Old path -->
+            <!-- Old path (visible in "before" state) -->
             <div class="path-card path-bad reveal" data-delay="0" id="pathBad">
                 <div class="path-badge path-badge-bad">⚠ Eski Yol</div>
                 <h3 class="path-title">{{Old Path Title}}</h3>
@@ -377,10 +382,8 @@ Used when the solution changes the flow or architecture of a process.
                 </div>
             </div>
 
-            <div class="path-vs reveal" data-delay="100">VS</div>
-
-            <!-- New path -->
-            <div class="path-card path-good reveal" data-delay="200" id="pathGood">
+            <!-- New path (visible in "after" state, starts hidden) -->
+            <div class="path-card path-good hidden" id="pathGood">
                 <div class="path-badge path-badge-good">✅ Yeni Yol</div>
                 <h3 class="path-title">{{New Path Title}}</h3>
                 <p class="path-desc">{{New path description}}</p>
@@ -412,6 +415,61 @@ Used when the solution changes the flow or architecture of a process.
 </section>
 ```
 
+### Pattern D: Simulation (Canlı Karşılaştırma)
+
+Used when the problem involves latency, race conditions, parallel processes, or performance bottlenecks where it is necessary to show the "before" and "after" executing simultaneously (side-by-side).
+
+```html
+<section class="section-sim">
+    <div class="sec-inner">
+        <div class="sec-eyebrow">Canlı Karşılaştırma</div>
+        <h2 class="sec-title">{{Simulation Title}}</h2>
+        <p class="sec-sub">{{Explanation of what we are watching}}</p>
+
+        <div class="sim-grid">
+            <!-- Left: Eski Durum -->
+            <div class="sim-panel sim-panel-bad reveal" data-delay="0">
+                <div class="sim-panel-header">
+                    <span class="sim-badge sim-badge-bad">🐛 Eski Durum</span>
+                    <span class="sim-latency" id="simLatencyBefore">—</span>
+                </div>
+                <!-- Add progress bars, nodes, counters or flows here -->
+            </div>
+
+            <!-- Right: Yeni Durum -->
+            <div class="sim-panel sim-panel-good reveal" data-delay="200">
+                <div class="sim-panel-header">
+                    <span class="sim-badge sim-badge-good">✅ Yeni Durum</span>
+                    <span class="sim-latency" id="simLatencyAfter">—</span>
+                </div>
+                <!-- Add progress bars, nodes, counters or flows here -->
+            </div>
+        </div>
+
+        <!-- Start Simulation Controls -->
+        <div class="sim-controls reveal" data-delay="300">
+            <button class="sim-ctrl-btn sim-btn-secondary" id="simBtnBefore" onclick="startSimulation('before')">
+                <span id="simBtnIconBefore">▶</span>
+                <span id="simBtnLabelBefore">Eski Durumu Oynat</span>
+            </button>
+            <button class="sim-ctrl-btn sim-ctrl-both" id="simBtnBoth" onclick="startSimulation('both')">
+                <span class="sim-ctrl-icon">▶</span>
+                <span class="sim-ctrl-label">İkisini de Başlat</span>
+            </button>
+            <button class="sim-ctrl-btn sim-btn-secondary" id="simBtnAfter" onclick="startSimulation('after')">
+                <span id="simBtnIconAfter">▶</span>
+                <span id="simBtnLabelAfter">Yeni Durumu Oynat</span>
+            </button>
+        </div>
+
+        <!-- Optional: Result Comparison Card -->
+        <div class="sim-result hidden" id="simResultCard">
+            <!-- Result metrics go here -->
+        </div>
+    </div>
+</section>
+```
+
 ---
 
 ## Story Step Icon Classes
@@ -426,6 +484,9 @@ Used when the solution changes the flow or architecture of a process.
 ## Reveal Animation
 
 All elements with class `reveal` use IntersectionObserver for scroll-driven animation. Use `data-delay` attribute (in ms) for staggered appearances:
+
+> [!CAUTION]
+> **`hidden` and `reveal` must NEVER coexist on the same element.** The `hidden` class (`display: none !important`) prevents IntersectionObserver from detecting the element, so `visible` is never added. When `hidden` is later removed via JS, `reveal` keeps the element at `opacity: 0`. Elements that toggle visibility via the `hidden` class must NOT have the `reveal` class.
 
 ```html
 <div class="reveal" data-delay="0">First element</div>

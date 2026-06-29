@@ -143,7 +143,7 @@ The hero visual is the **most impactful element**. It must be immediately unders
 |-------------|-------------|-----------------|
 | **Phone Mockup** | Change affects what a mobile customer sees on their device screen | A field value appears blank → reveals correctly on toggle |
 | **System Panel Mockup** | Change affects a web admin panel — counters, status indicators, or a button that locks/unlocks | Counter values flash-animate and button state changes |
-| **Timeline** | Change eliminates a delay or timing issue in a process | A "delay block" expands in before state, collapses to zero in after state |
+
 | **Custom** | None of the above fits | Describe proposed visual to user, confirm before building |
 
 > [!IMPORTANT]
@@ -173,11 +173,12 @@ Every demo follows the same **section-based before/after architecture**:
 | 1 | **Sticky Nav** | `.topnav` | — | Badge + `🐛 Eski Durum / ✅ Yeni Durum` toggle + theme toggle |
 | 2 | **Hero** | `.section-hero` | `Sprint Demo · [Month] [Year]` | Dramatic headline + interactive visual |
 | 3 | **Story** | `.section-story` | `Ne Yaşandı?` | 3-step story track |
-| 4 | **Root Cause** | `.section-rootcause` / `.section-mismatch` / `.section-bugs` | `Kök Neden` | Issue-specific visual proof |
+| 4 | **Root Cause** | `.section-rootcause` / `.section-mismatch` / `.section-bugs` / `.section-sim` | `Kök Neden` / `Canlı Karşılaştırma` | Issue-specific visual proof |
 | 5 | **Impact** | `.section-impact` | `Değişim` | Before/after list + contribution bar |
 | 6 | **Footer** | `.footer` | — | Sprint info line |
 
-The single `setState('before'|'after')` function drives **all sections simultaneously** when the nav toggle is pressed. No step-by-step scenarios, no auto-play, no pipeline flows.
+The single `setState('before'|'after')` function drives **all sections simultaneously** when the nav toggle is pressed. No step-by-step scenarios, no auto-play, no pipeline flows. 
+*(Exception: `.section-sim` (Canlı Karşılaştırma) may use a side-by-side layout (`.sim-grid`) for time-based, asynchronous, or performance comparisons where seeing both states play out in parallel is necessary).*
 
 ---
 
@@ -218,10 +219,13 @@ Read [references/JS-REFERENCE.md](references/JS-REFERENCE.md) for the full JavaS
 Key patterns:
 - `'use strict'` at top
 - State variables: `currentState = 'before'`, `currentTheme`
-- Boot sequence: set theme → update icon → init reveal → set initial visual state
-- `setState(state)` is the **single entry point** for all toggle changes
-- Each section has its own `update*` function called from `setState`
+- Boot sequence: set theme → update icon → init reveal → `applyAllSections('before')`
+- `setState(state)` → `applyAllSections(state)` is the **single entry point** for all toggle changes
+- `applyAllSections` wraps each updater in `try/catch` for **error isolation** — one broken section must not prevent others from updating
+- Every `update*` function starts with **null guards**: `if (!el) return;`
+- Each section has its own `update*` function: `updateHeroText`, `updateStoryTitle`, `updateStoryEndCard`, `updateRootCauseTitle`, `updateRootCause`, `updateRootCauseCallout`, etc.
 - `initReveal()` uses IntersectionObserver for scroll-driven animations
+- **`hidden` + `reveal` must NEVER coexist on the same element** — `hidden` prevents IntersectionObserver from firing, leaving `reveal` elements permanently invisible
 - Theme persistence via `localStorage`
 - No external dependencies, no frameworks
 
@@ -242,6 +246,7 @@ Validation Checklist:
 - [ ] Hero visual animates smoothly between states
 - [ ] Story steps appear with scroll animation
 - [ ] Root cause section responds to toggle
+- [ ] Root cause toggle: only one visual is active per state — no orphaned elements (e.g. VS dividers) or empty columns remain
 - [ ] Before/After lists render with ✕/✓ markers
 - [ ] Contribution bar is visible
 - [ ] Footer shows correct sprint info
@@ -257,10 +262,16 @@ Code Quality:
 - [ ] No inline styles (everything in style.css)
 - [ ] No external dependencies (no CDN except Google Fonts)
 - [ ] All interactive elements have meaningful id attributes
+- [ ] All toggle-responsive `<h2>` and `<p>` elements have id attributes
 - [ ] CSS variables used consistently (no hardcoded colors in components)
 - [ ] JavaScript uses var (not let/const) for IE11-safe output
 - [ ] No console.log statements
 - [ ] Responsive at 640-720px breakpoint
+- [ ] Every update function has null guards (if (!el) return)
+- [ ] applyAllSections wraps each updater in try/catch
+- [ ] No element has both `hidden` and `reveal` classes simultaneously
+- [ ] Boot sequence ends with applyAllSections('before')
+- [ ] id targets in JS match the exact DOM element that owns the class (no parentElement traversal)
 ```
 
 ---
