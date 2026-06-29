@@ -17,6 +17,7 @@ A collection of reusable AI agent skills for agentic IDEs. Each skill defines a 
 | `java-code-generator` | Generates Java code following TDD and Clean Architecture principles |
 | `java-code-reviewer` | Reviews Java code for Clean Code, OOP, SOLID, and Design Pattern violations |
 | `java-unit-test-writer` | Generates unit tests with 100% delta coverage following TDD practices |
+| `react-code-reviewer` | Reviews React/TypeScript frontend code for security, hooks correctness, performance, and Clean Code violations |
 | `skill-creator` | Creates new Agent Skills following the open specification |
 | `story-splitter` | Splits requirements into INVEST-compliant user stories using vertical slicing |
 
@@ -58,6 +59,7 @@ story-splitter  ──►  document-generator  ──►  java-code-generator
 | Jira issue | `document-generator` | `doc_<KEY>_ENG.md`, `doc_<KEY>_TR.md` | `java-code-generator` |
 | TDD document ready | `java-code-generator` | Source + test files | `java-code-reviewer` |
 | Code changes staged | `java-code-reviewer` | `review-<timestamp>.md` | `java-unit-test-writer` |
+| React code changes staged | `react-code-reviewer` | `review-<timestamp>.md` | — |
 | Script changes staged | `bash-script-reviewer` | `review-<timestamp>.md` | — |
 | Sprint review approaching | `demo-generator` | `index.html`, `style.css`, `app.js` | — |
 
@@ -140,6 +142,9 @@ chmod +x scripts/install-skills.sh
 
 # Remove all skills from Claude
 ./scripts/install-skills.sh --remove --ide claude
+
+# Force reinstall all skills to all supported IDEs
+./scripts/install-skills.sh --full-install --force
 ```
 
 ## Skill Structure

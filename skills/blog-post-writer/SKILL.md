@@ -95,7 +95,7 @@ See [EXAMPLES.md](references/EXAMPLES.md) for example snippets.
 
 ## Step 3: Generate Cover Image
 
-Use the `generate_image` tool with this template:
+Use the `generate_image` tool with this template (it outputs a 1024x1024 image by default):
 
 ```
 A minimalist tech blog cover image with dark navy background (#1a2634) 
@@ -105,7 +105,15 @@ On the right side, "[TOPIC_TITLE]" text in uppercase light gray.
 Small diamond logo in bottom-right corner. Professional, modern, clean.
 ```
 
-**Save the image to:** `[workspace]/assets/img/posts/[YYYY-MM-DD]-[slug].png`
+**CRITICAL: Crop to Wide Aspect Ratio**
+The blog requires wide images (~1.95:1 ratio). Do NOT stretch or resize the generated image, as it degrades quality. Instead, crop the raw artifact from the center to exactly `1024x523`.
+
+Use your terminal tools to do this. For example, on macOS:
+```bash
+sips -s format png -c 523 1024 [path-to-generated-artifact.png] --out [workspace]/assets/img/posts/[YYYY-MM-DD]-[slug].png
+```
+
+**Final image destination:** `[workspace]/assets/img/posts/[YYYY-MM-DD]-[slug].png`
 
 > [!NOTE]
 > **IF `generate_image` tool is unavailable:** Skip image generation. Set a placeholder path: `assets/img/posts/[YYYY-MM-DD]-[slug].png` and continue to Step 4.
@@ -140,8 +148,8 @@ tags: [ comma, separated, lowercase, tags ]
 
 ### Article Flow
 
-1. **Hook** - Real-world analogy (NO CODE YET)
-2. **Overview** - Pattern/concept definition
+1. **Hook** - Must use exactly this heading: `## **1. The Hook and Introduction**`. Follow with a real-world analogy (NO CODE YET).
+2. **Overview** - `## **2. [Pattern/Concept Name] Overview**`
 3. **UML/Diagram** - If design pattern
 4. **Bad Code** - Show the antipattern
 5. **Good Code** - Step-by-step solution
