@@ -123,8 +123,26 @@ assert_output_contains \
     bash "$SCRIPT_UNDER_TEST" --ide agents --dry-run
 
 assert_output_contains \
+    "given_antigravity_ide_flag_with_dry_run_when_run_then_targets_gemini_config_skills" \
+    ".gemini/config/skills" \
+    "" \
+    bash "$SCRIPT_UNDER_TEST" --ide antigravity --dry-run
+
+assert_output_contains \
+    "given_antigravity_ide_alias_flag_with_dry_run_when_run_then_targets_gemini_config_skills" \
+    ".gemini/config/skills" \
+    "" \
+    bash "$SCRIPT_UNDER_TEST" --ide antigravity-ide --dry-run
+
+assert_output_contains \
     "given_full_install_with_dry_run_when_run_then_shows_dry_run" \
     "DRY RUN" \
+    "" \
+    bash "$SCRIPT_UNDER_TEST" --full-install --dry-run
+
+assert_output_contains \
+    "given_full_install_with_dry_run_when_run_then_includes_gemini_config_skills" \
+    ".gemini/config/skills" \
     "" \
     bash "$SCRIPT_UNDER_TEST" --full-install --dry-run
 
