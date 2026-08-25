@@ -4,9 +4,17 @@
 
 ### 1.1 Problem Tanımı
 
-* **Mevcut Durum:** (Ne bozuk/verimsiz?)
-* **Etki:** (İş etkisi/Teknik borç)
-* **Kök Neden:** (Teknik açıklama)
+> Düz dilde yaz. Teknik bilgisi olmayan herkes bu bölümü anlayabilmeli.
+> Teknik detaylar (sınıf/metot isimleri) yalnızca ek not olarak yer almalı.
+
+* **Mevcut Durum:** (Kullanıcı veya sistem açısından ne bozuk/verimsiz? İşlevsel terimlerle açıkla)
+
+  > *Teknik detay: (Opsiyonel — implementorlar için sınıf/metot isimleri, yalnızca gerekiyorsa)*
+
+* **Etki:** (İş etkisi / Teknik borç)
+* **Kök Neden:** (Neden oluştuğunun düz dilde açıklaması)
+
+  > *Teknik detay: (Opsiyonel — kod seviyesinde kök neden)*
 
 ### 1.2 Önerilen Çözüm
 
@@ -32,7 +40,7 @@
     1. Service A, Service B'yi çağırır (Sync/Async?)
     2. Service B, Event X'i publish eder...
 
-* **Diyagram:** (Gerekirse)
+* **Diyagram:** (Her zaman ekle — minimal de olsa. Mutlu yolu ve en az bir hata/fallback path'i göster)
 
 ```mermaid
 sequenceDiagram
@@ -111,17 +119,29 @@ sequenceDiagram
 
 ### 7.1 Pozitif Case'ler
 
-* [ ] Case 1: Açıklama
-* [ ] Case 2: Açıklama
+* [ ] **Senaryo 1 — [Kısa açıklayıcı başlık]**
+  * **Given** [Düz dilde ön koşul]
+  * **When** [Eylem]
+  * **Then** [Beklenen sonuç]
+
+* [ ] **Senaryo 2 — [Kısa açıklayıcı başlık]**
+  * **Given** [Düz dilde ön koşul]
+  * **When** [Eylem]
+  * **Then** [Beklenen sonuç]
 
 ### 7.2 Negatif Case'ler
 
-* [ ] Case 1: Açıklama
-* [ ] Case 2: Açıklama
+* [ ] **Senaryo 3 — [Kısa açıklayıcı başlık]**
+  * **Given** [Düz dilde ön koşul]
+  * **When** [Eylem]
+  * **Then** [Beklenen sonuç]
 
 ### 7.3 Edge Case'ler
 
-* [ ] Case 1: Açıklama
+* [ ] **Senaryo 4 — [Kısa açıklayıcı başlık]**
+  * **Given** [Düz dilde ön koşul]
+  * **When** [Eylem]
+  * **Then** [Beklenen sonuç]
 
 ---
 

@@ -129,6 +129,69 @@ Documents created:
 
 ---
 
+## Document Writing Rules
+
+These rules apply to **all generated documents** regardless of topic or language.
+
+### Rule 1 — §1.1 Problem Statement: Plain Language First
+
+- Write the problem in language any stakeholder (PM, QA, architect) can understand.
+- **Do not** lead with class names, method signatures, or exception names in the main narrative.
+- If technical details are necessary for implementors, isolate them in a supplementary note:
+  ```
+  > *Technical detail: (class/method references here, only if needed)*
+  ```
+- The main text must answer: *What breaks? What is the user/system impact? Why does it happen?* — without requiring code knowledge.
+
+### Rule 2 — §3.1 Diagram: Always Required
+
+- Always include a Mermaid sequence or flow diagram. A minimal diagram is better than none.
+- The diagram **must** show the main happy-path and at least one failure or fallback path.
+- Do not mark the diagram as optional. Remove any "(If needed)" qualifier.
+
+### Rule 3 — §7 Test Scenarios: Gherkin Format with Checkboxes
+
+- Each scenario must use Given / When / Then in plain language.
+- Each scenario title must be a **list item** with a `[ ]` checkbox.
+- Given / When / Then must be **indented sub-items** under the scenario title.
+- Required format:
+  ```
+  * [ ] **Scenario N — [Short descriptive title]**
+    * **Given** [precondition in plain language]
+    * **When** [action]
+    * **Then** [expected outcome]
+  ```
+- **Forbidden:** bold paragraph format (`**[ ] Scenario N**` without a leading `*`), dash bullets (`- **Given**`), and unit-test method name format (`givenX_whenY_thenZ`).
+
+### Rule 4 — Bullet Lists: Always Use `*`, Never `-`
+
+- All unordered list items must use `*` as the bullet marker.
+- `-` is forbidden as a list marker anywhere in the document.
+- This applies to all nesting levels, including Given / When / Then sub-items and inline bullet lists.
+- **Reason:** Pandoc's JIRA writer merges `-`-initiated lists inconsistently with adjacent paragraphs, producing single-line output in Confluence.
+
+### Rule 5 — Standalone Bold Labels: Always Follow With a Blank Line
+
+- When a `**Label:**` occupies its **own line** (not inline with text), the very next line must be blank before any content follows — regardless of whether that content is a paragraph, a list, or a numbered list.
+- Required format:
+  ```
+  **Label:**
+
+  Content starts here.
+  ```
+- **Forbidden:** placing content directly on the line after a standalone label:
+  ```
+  **Label:**
+  Content starts here.   ← WRONG
+  ```
+- **Reason:** Pandoc's JIRA writer collapses a standalone label and its immediately following content into a single paragraph, breaking Confluence rendering.
+- Labels that are **inline** (label and content on the same line) are exempt:
+  ```
+  * **Inline Label:** content here   ← OK, no blank line needed
+  ```
+
+---
+
 ## Tone & Style
 
 - **Radical Candor.** No fluff. No pleasantries.

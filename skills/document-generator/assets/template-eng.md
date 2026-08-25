@@ -4,9 +4,17 @@
 
 ### 1.1 Problem Statement
 
-* **Current Behavior:** (What is broken/inefficient?)
-* **Impact:** (Business impact/Technical debt)
-* **Root Cause:** (Technical explanation)
+> Write in plain language. Any stakeholder must understand this section without code knowledge.
+> Technical details (class/method names) belong in supplementary notes only.
+
+* **Current Behavior:** (Describe what is wrong in business or functional terms — what the user or system experiences)
+
+  > *Technical detail: (Optional — specific class/method names for implementors, only if necessary)*
+
+* **Impact:** (Business impact / Technical debt)
+* **Root Cause:** (Plain-language explanation of why this happens)
+
+  > *Technical detail: (Optional — root cause at code level)*
 
 ### 1.2 Proposed Solution
 
@@ -32,7 +40,7 @@
     1. Service A calls Service B (Sync/Async?)
     2. Service B publishes Event X...
 
-* **Diagram:** (If needed)
+* **Diagram:** (Always include — even a minimal one. Show the happy path and at least one failure/fallback path)
 
 ```mermaid
 sequenceDiagram
@@ -111,17 +119,29 @@ sequenceDiagram
 
 ### 7.1 Positive Cases
 
-* [ ] Case 1: Description
-* [ ] Case 2: Description
+* [ ] **Scenario 1 — [Short descriptive title]**
+  * **Given** [Precondition in plain language]
+  * **When** [Action]
+  * **Then** [Expected outcome]
+
+* [ ] **Scenario 2 — [Short descriptive title]**
+  * **Given** [Precondition in plain language]
+  * **When** [Action]
+  * **Then** [Expected outcome]
 
 ### 7.2 Negative Cases
 
-* [ ] Case 1: Description
-* [ ] Case 2: Description
+* [ ] **Scenario 3 — [Short descriptive title]**
+  * **Given** [Precondition in plain language]
+  * **When** [Action]
+  * **Then** [Expected outcome]
 
 ### 7.3 Edge Cases
 
-* [ ] Case 1: Description
+* [ ] **Scenario 4 — [Short descriptive title]**
+  * **Given** [Precondition in plain language]
+  * **When** [Action]
+  * **Then** [Expected outcome]
 
 ---
 
