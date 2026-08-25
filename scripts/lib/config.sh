@@ -34,7 +34,7 @@ readonly ACTION_COUNT=4
 get_ide_path() {
     local ide="$1"
     case "$ide" in
-        antigravity) echo "$HOME/.gemini/antigravity/skills" ;;
+        antigravity|antigravity-ide) echo "$HOME/.gemini/config/skills" ;;
         gemini)      echo "$HOME/.gemini/skills" ;;
         cursor)      echo "$HOME/.cursor/skills" ;;
         windsurf)    echo "$HOME/.codeium/windsurf/skills" ;;

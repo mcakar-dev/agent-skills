@@ -67,7 +67,7 @@ story-splitter  ──►  document-generator  ──►  java-code-generator
 
 | IDE | Skills Path |
 |-----|-------------|
-| **Antigravity** | `~/.gemini/antigravity/skills/` |
+| **Antigravity / Antigravity IDE** | `~/.gemini/config/skills/` |
 | **Gemini CLI** | `~/.gemini/skills/` |
 | **Cursor** | `~/.cursor/skills/` |
 | **Windsurf** | `~/.codeium/windsurf/skills/` |
