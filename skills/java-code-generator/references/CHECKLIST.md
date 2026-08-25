@@ -32,17 +32,21 @@ class MyServiceImplTest {
 | Edge case | `givenEmptyList_whenProcess_thenReturnsEmpty` |
 | Optional empty | `givenNonExistentId_whenFindById_thenReturnsEmpty` |
 
-### Mocking rules
+### Mocking, Immutability & Assertions
 
 | Rule | Pattern |
 |------|---------|
-| Stubbing | `Mockito.doReturn(value).when(mock).method()` |
-| Verify | `Mockito.verify(mock, Mockito.times(1)).method()` |
-| Never | `Mockito.verify(mock, Mockito.never()).method()` |
+| Stubbing | `Mockito.doReturn(value).when(mock).method(Mockito.any(Type.class))` — never a concrete mutable instance |
+| Verify single call | `Mockito.verify(mock).method()` — defaults to 1 call; do not append `Mockito.times(1)` |
+| Verify negative flow | `Mockito.verify(mock, Mockito.never()).method()` / `Mockito.verifyNoInteractions(mock)` |
 | Capture | `ArgumentCaptor.forClass(Type.class)` |
-| Any matcher | `Mockito.any(Type.class)` |
+| Object assertions | `Assertions.assertThat(actual).usingRecursiveComparison().isEqualTo(expected)` (not partial field checks) |
+| Fixtures | `TestObjectFactory` static factory per test — never mutable `@BeforeEach` fields |
 
-### Immutability pattern (CRITICAL)
+### Immutability (CRITICAL)
+
+> [!CAUTION]
+> Never reuse mutable objects between Action and Assertion phases.
 
 ```java
 // BAD - Reference mutation
@@ -55,36 +59,40 @@ Mockito.verify(repository).save(user); // WRONG
 ArgumentCaptor<User> captor = ArgumentCaptor.forClass(User.class);
 Mockito.verify(repository).save(captor.capture());
 Assertions.assertThat(captor.getValue().getName()).isEqualTo("test");
-
-// GOOD - ArgumentMatchers
-Mockito.verify(repository).save(Mockito.argThat(u -> 
-    "test".equals(u.getName())
-));
 ```
 
-### Assertion patterns
+### Output Reference Sharing (CRITICAL)
+
+> [!CAUTION]
+> Never let a stubbed return value and its assertion expectation share the same heap reference — if the SUT mutates it in place, both variables mutate together and the assertion passes even though behavior is broken.
 
 ```java
-// Equality
-Assertions.assertThat(actual).isEqualTo(expected);
+// BAD - mockResponse IS expectedResponse (same reference)
+UserResponse expectedResponse = new UserResponse(USER_ID, USER_NAME, USER_EMAIL);
+Mockito.doReturn(expectedResponse).when(userMapper).toResponse(entity);
+UserResponse result = userService.createUser(request);
+Assertions.assertThat(result).usingRecursiveComparison().isEqualTo(expectedResponse);
 
-// Not null
-Assertions.assertThat(result).isNotNull();
-
-// Collections
-Assertions.assertThat(list).hasSize(3).contains(item);
-Assertions.assertThat(list).isEmpty();
-
-// Exception
-Assertions.assertThatThrownBy(() -> service.method(null))
-    .isInstanceOf(CustomException.class)
-    .hasMessageContaining("expected message");
-
-// Optional
-Assertions.assertThat(optional).isPresent();
-Assertions.assertThat(optional).isEmpty();
-Assertions.assertThat(optional).hasValue(expected);
+// GOOD - independent instances
+UserResponse mockResponse = new UserResponse(USER_ID, USER_NAME, USER_EMAIL);
+UserResponse expectedResponse = new UserResponse(USER_ID, USER_NAME, USER_EMAIL);
+Mockito.doReturn(mockResponse).when(userMapper).toResponse(entity);
+UserResponse result = userService.createUser(request);
+Assertions.assertThat(result).usingRecursiveComparison().isEqualTo(expectedResponse);
 ```
+
+The same rule applies to stub arguments: pass `Mockito.any(Type.class)` instead of a concrete request object, then verify the actual argument separately with `ArgumentCaptor`. Matching on a concrete reference causes a silent `null` return (masked as a downstream `NullPointerException`) if the SUT mutates the argument before the call.
+
+### Full Object Graph Assertions
+
+Prefer `usingRecursiveComparison()` over asserting one or two scalar fields on DTOs with 3+ fields; partial assertions let dropped/unmapped fields survive mutation testing.
+
+### Test Fixture Isolation
+
+Generate fresh fixtures per test via a static factory (e.g., `TestObjectFactory`), never mutable class fields or `@BeforeEach` state, and centralize magic literals there as `public static final` constants.
+
+> [!NOTE]
+> This section is self-contained so `java-code-generator` works standalone. If the **java-unit-test-writer** skill is also installed, it can additionally be invoked for broader delta-coverage test generation on existing/staged code.
 
 ---
 

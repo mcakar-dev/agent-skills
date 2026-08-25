@@ -34,6 +34,7 @@ User findById(@Param("id") Long id);
 | Violation | Check |
 |-----------|-------|
 | God class | Class > 500 lines |
+| Method too long | Method > 20 lines |
 | Method too complex | Cyclomatic complexity > 10 |
 | Mixed concerns | Controller doing business logic |
 
@@ -65,6 +66,32 @@ User findById(@Param("id") Long id);
 | Concrete dependencies | `new ConcreteClass()` in service | MAJOR |
 | Field injection | `@Autowired` on fields | CRITICAL |
 | Missing abstraction | Depending on implementation, not interface | MAJOR |
+
+### Composition over Inheritance
+
+| Violation | Check | Severity |
+|-----------|-------|----------|
+| Deep inheritance | Subclass chain > 1 level, or `extends` used to reuse/vary behavior rather than model an is-a relationship | MAJOR |
+| Fragile base class | Subclass depends on base class internals | MAJOR |
+
+See [references/PATTERNS.md](references/PATTERNS.md) for the full Deep Inheritance / Composition example.
+
+### Feature Envy & Primitive Obsession
+
+| Violation | Check | Severity |
+|-----------|-------|----------|
+| Feature envy | Method operates mostly on another class's data instead of its own | MAJOR |
+| Primitive obsession | 3+ unrelated primitive parameters representing a single domain concept | MINOR |
+
+See [references/PATTERNS.md](references/PATTERNS.md) for the full Feature Envy / Primitive Obsession examples.
+
+### KISS & YAGNI (Over-Engineering)
+
+| Violation | Check | Severity |
+|-----------|-------|----------|
+| Speculative generality | Interface with exactly one implementation and no documented extension plan | MAJOR |
+| Unused variability | Configuration flags/parameters not exercised by any current requirement | MINOR |
+| Unnecessary abstraction | Extra wrapper/factory layer for a single code path | MINOR |
 
 ---
 
@@ -122,6 +149,22 @@ private static final int STATUS_ACTIVE = 1;
 private static final String ROLE_ADMIN = "ADMIN";
 ```
 
+### Encapsulation
+
+```java
+// BAD - leaks mutable internal state
+public List<Item> getItems() {
+    return items;
+}
+
+// GOOD - immutable view or defensive copy
+public List<Item> getItems() {
+    return List.copyOf(items);
+}
+```
+
+Also flag Law of Demeter violations (`a.getB().getC().getD()` call chains) — see [references/PATTERNS.md](references/PATTERNS.md).
+
 ---
 
 ## P5: Spring Boot Specific (CRITICAL/MAJOR)
@@ -149,22 +192,7 @@ public class UserController {
 
 ### Exception Handling
 
-```java
-// BAD - Generic exception
-try {
-    process();
-} catch (Exception e) {
-    // empty
-}
-
-// GOOD - Specific exception with logging
-try {
-    process();
-} catch (DataAccessException e) {
-    log.error("Database error during processing: {}", e.getMessage(), e);
-    throw new ServiceException("Processing failed", e);
-}
-```
+Flag generic `catch (Exception e)` and empty catch blocks; require a specific exception type plus SLF4J error logging. See [references/PATTERNS.md](references/PATTERNS.md) "Swallowing Exceptions" for the full example and architectural implication.
 
 ### Static Imports
 
@@ -210,6 +238,43 @@ ArgumentCaptor<User> captor = ArgumentCaptor.forClass(User.class);
 verify(repository).save(captor.capture());
 assertThat(captor.getValue().getName()).isEqualTo("test");
 ```
+
+### Output Reference Sharing (Self-Comparison Pitfall)
+
+```java
+// BAD - stub return value and assertion expectation are the same reference
+ResponseDto expectedResponse = ResponseDto.builder().id("1001").status("ACTIVE").build();
+Mockito.doReturn(expectedResponse).when(mapper).toDto(Mockito.any());
+ResponseDto result = service.process("1001");
+assertThat(result).usingRecursiveComparison().isEqualTo(expectedResponse); // passes even if result is mutated
+
+// GOOD - independent instances for stub return value and assertion expectation
+ResponseDto mockResponse = ResponseDto.builder().id("1001").status("ACTIVE").build();
+ResponseDto expectedResponse = ResponseDto.builder().id("1001").status("ACTIVE").build();
+Mockito.doReturn(mockResponse).when(mapper).toDto(Mockito.any());
+```
+
+### Stub Argument Matching
+
+```java
+// BAD - exact reference matching in stub, silently returns null if argument is mutated first
+Mockito.doReturn(externalDto).when(mapper).toExternal(requestDto);
+
+// GOOD - permissive matcher in stub, verify actual argument separately with ArgumentCaptor
+Mockito.doReturn(externalDto).when(mapper).toExternal(Mockito.any(RequestDto.class));
+```
+
+### Full Object Graph Assertions
+
+Flag single/partial field assertions on multi-field DTOs; require `usingRecursiveComparison()` against an expected template object instead.
+
+### Verification Style
+
+Flag `Mockito.verify(mock, Mockito.times(1))` as redundant — `Mockito.verify(mock)` already defaults to one invocation. Negative-flow tests (validation failures, short-circuits) must assert `Mockito.verify(mock, Mockito.never())` or `Mockito.verifyNoInteractions(mock)` on the dependencies that must not be touched.
+
+### Test Fixture Isolation
+
+Flag mutable fixtures declared as class fields or built in `@BeforeEach`; require static factory methods (e.g., `TestObjectFactory`) that return a fresh instance per test, with magic literals centralized as `public static final` constants.
 
 ### Coverage Rules
 

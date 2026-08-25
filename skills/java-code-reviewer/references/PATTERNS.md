@@ -146,6 +146,100 @@ public class Email {
 
 ---
 
+## OOP Violations
+
+### Deep Inheritance / Composition over Inheritance
+
+**Detection:**
+```java
+class PremiumUserService extends UserService {
+    @Override
+    public void notify(User user) { /* different channel */ }
+}
+```
+
+**Architectural Implication:** Couples the subclass to the base class's internals (fragile base class problem) and prevents varying behavior at runtime.
+
+**Fix:** Inject the varying behavior instead of subclassing it.
+
+```java
+class UserService {
+    private final NotificationStrategy notificationStrategy;
+}
+```
+
+---
+
+### Law of Demeter Violation (Feature Envy variant)
+
+**Detection:**
+```java
+String city = order.getCustomer().getAddress().getCity();
+```
+
+**Architectural Implication:** Couples the caller to the entire object graph of `Order`; any change to `Customer` or `Address` ripples outward.
+
+**Fix:** Tell, don't ask — expose the data the caller needs directly.
+
+```java
+String city = order.getBillingCity();
+```
+
+---
+
+### Encapsulation Leak
+
+**Detection:**
+```java
+public List<Item> getItems() {
+    return items;
+}
+```
+
+**Architectural Implication:** Callers can mutate internal state directly, bypassing invariants and creating thread-safety issues.
+
+**Fix:**
+```java
+public List<Item> getItems() {
+    return List.copyOf(items);
+}
+```
+
+---
+
+## Over-Engineering (YAGNI / KISS)
+
+### Speculative Generality
+
+**Detection:** An interface with exactly one implementation and no documented plan for a second one.
+
+```java
+public interface PaymentStrategy { ... }
+public class OnlyPaymentStrategyImpl implements PaymentStrategy { ... }
+```
+
+**Architectural Implication:** Adds an abstraction layer that provides no current value and increases cognitive load.
+
+**Fix:** Inline the logic into a single class until a second variant is actually required.
+
+---
+
+### Unnecessary Abstraction
+
+**Detection:** Wrapper-of-wrapper or factory-of-factory for a single code path.
+
+```java
+public class UserValidatorFactoryProvider { ... }
+```
+
+**Fix:** Collapse to the simplest solution that satisfies current requirements.
+
+```java
+public class UserValidator { ... }
+```
+
+---
+
 ## Performance Anti-Patterns
 
 ### N+1 Query in Loop
@@ -294,3 +388,94 @@ try {
 ```java
 return repository.findById(id);
 ```
+
+---
+
+## Testing Anti-Patterns
+
+### Output Reference Sharing (Self-Comparison Pitfall)
+
+**Detection:** The variable stubbed as a mock's return value is the same reference passed to the assertion's expected value.
+
+```java
+ResponseDto expectedResponse = ResponseDto.builder().id("1001").build();
+Mockito.doReturn(expectedResponse).when(mapper).toDto(Mockito.any());
+ResponseDto result = service.process("1001");
+Assertions.assertThat(result).usingRecursiveComparison().isEqualTo(expectedResponse);
+```
+
+**Architectural Implication:** If the SUT mutates the object in place, both variables mutate together and the assertion compares the object with itself, silently passing even though behavior is broken (mutation survivor).
+
+**Fix:** Build two independent instances — one for the stub's return value, one for the assertion's expected value.
+
+---
+
+### Exact Reference Matching in Stubs
+
+**Detection:** A concrete mutable object (rather than `Mockito.any(Type.class)`) is passed as the argument matcher in `when()`/`doReturn().when()`.
+
+```java
+Mockito.doReturn(externalDto).when(mapper).toExternal(requestDto);
+```
+
+**Architectural Implication:** If `requestDto` is mutated before the call, the stub silently fails to match and returns `null`, surfacing as a confusing downstream `NullPointerException` instead of failing at the real cause. It also couples stub behavior to input validation, which belongs in verification, not stubbing.
+
+**Fix:**
+```java
+Mockito.doReturn(externalDto).when(mapper).toExternal(Mockito.any(RequestDto.class));
+// verify the actual argument separately
+ArgumentCaptor<RequestDto> captor = ArgumentCaptor.forClass(RequestDto.class);
+Mockito.verify(mapper).toExternal(captor.capture());
+Assertions.assertThat(captor.getValue()).usingRecursiveComparison().isEqualTo(requestDto);
+```
+
+---
+
+### Partial Field Assertions
+
+**Detection:** Asserting one or two scalar fields on a captured/mapped object with 3+ fields.
+
+```java
+Assertions.assertThat(captor.getValue().getEmail()).isEqualTo("user@example.com");
+```
+
+**Architectural Implication:** Dropped or unmapped fields (e.g., a removed `firstName` mapping) go undetected because they are never asserted.
+
+**Fix:**
+```java
+Assertions.assertThat(captor.getValue()).usingRecursiveComparison().isEqualTo(expectedRequest);
+```
+
+---
+
+### Redundant `times(1)` / Missing Negative-Flow Verification
+
+**Detection:** `Mockito.verify(mock, Mockito.times(1))` used instead of the default `Mockito.verify(mock)`; or a negative-flow test (validation failure, short-circuit) with no `never()`/`verifyNoInteractions()` assertion.
+
+**Fix:**
+```java
+Mockito.verify(mock).call(captor.capture());
+Mockito.verify(otherMock, Mockito.never()).call(Mockito.any());
+Mockito.verifyNoInteractions(unrelatedMock);
+```
+
+---
+
+### Shared Mutable Test Fixtures
+
+**Detection:** Mutable fixture fields populated in `@BeforeEach` or as class-level instance variables.
+
+```java
+class OrderServiceTest {
+    private OrderRequest request;
+
+    @BeforeEach
+    void setUp() {
+        request = OrderRequest.builder().id("123").build();
+    }
+}
+```
+
+**Architectural Implication:** Mutations from one test can leak into another, making test outcomes order-dependent and non-deterministic.
+
+**Fix:** Generate fresh instances per test via a static factory (e.g., `TestObjectFactory.createOrderRequest()`), with magic literals centralized as `public static final` constants.

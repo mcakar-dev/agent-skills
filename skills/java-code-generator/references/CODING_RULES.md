@@ -69,6 +69,21 @@ public class EmailNotificationStrategy implements NotificationStrategy {
 
 Subtypes must be fully substitutable for their base types.
 
+```java
+// FORBIDDEN - strengthens preconditions / narrows the contract
+class ReadOnlyRepository extends CrudRepository {
+    @Override
+    public void save(Entity e) {
+        throw new UnsupportedOperationException();
+    }
+}
+
+// REQUIRED - model the narrower contract as its own abstraction
+interface ReadRepository {
+    Optional<Entity> findById(Long id);
+}
+```
+
 ### Interface Segregation (ISP)
 
 ```java
@@ -95,6 +110,71 @@ private final UserServiceImpl userService = new UserServiceImpl();
 
 // REQUIRED
 private final UserService userService; // Interface
+```
+
+---
+
+## OOP Principles Beyond SOLID
+
+### Composition over Inheritance
+
+```java
+// FORBIDDEN - inheritance used to reuse/vary behavior
+class PremiumUserService extends UserService {
+    @Override
+    public void notify(User user) { /* different channel */ }
+}
+
+// REQUIRED - composition via an injected strategy
+class UserService {
+    private final NotificationStrategy notificationStrategy;
+}
+```
+
+**Rule:** Avoid inheritance chains deeper than one level. Prefer injecting behavior (Strategy) over subclassing to vary it.
+
+### Encapsulation
+
+```java
+// FORBIDDEN - leaks mutable internal state
+public List<Item> getItems() {
+    return items;
+}
+
+// REQUIRED - immutable view or defensive copy
+public List<Item> getItems() {
+    return List.copyOf(items);
+}
+```
+
+### Law of Demeter / Tell, Don't Ask
+
+```java
+// FORBIDDEN - reaches through collaborators
+String city = order.getCustomer().getAddress().getCity();
+
+// REQUIRED - ask the object, don't reach through it
+String city = order.getBillingCity();
+```
+
+### Feature Envy & Primitive Obsession
+
+```java
+// FORBIDDEN - feature envy: operates mostly on Order's data, not its own
+public BigDecimal calculateTotal(Order order) {
+    return order.getItems().stream()
+        .map(i -> i.getPrice().multiply(i.getQuantity()))
+        .reduce(BigDecimal.ZERO, BigDecimal::add);
+}
+
+// REQUIRED - move the method to the class that owns the data
+// In Order: public BigDecimal calculateTotal() { ... }
+
+// FORBIDDEN - primitive obsession: unrelated primitives for a domain concept
+public void sendEmail(String to, String subject, String body) { ... }
+
+// REQUIRED - value object / record for the domain concept
+public void sendEmail(EmailMessage message) { ... }
 ```
 
 ---
@@ -206,6 +286,31 @@ private Entity transform(Request request) { }
 private void persist(Entity entity) { }
 ```
 
+**Rule:** Keep cyclomatic complexity ≤ 10 per method. Nested conditionals/guard clauses that push a short method above this threshold still require extraction, even if it stays under 20 lines.
+
+### No Speculative Generality (YAGNI)
+
+```java
+// FORBIDDEN - interface with exactly one implementation and no documented extension plan
+public interface PaymentStrategy { ... }
+public class OnlyPaymentStrategyImpl implements PaymentStrategy { ... }
+
+// REQUIRED - inline the logic until a second variant is actually required
+public class PaymentService { ... }
+```
+
+**Rule:** Do not introduce interfaces, configuration flags, or parameters for variability that is not required by the current story. Cross-check against this file's own Feature Envy / Primitive Obsession section above before finalizing abstractions.
+
+### Simplicity (KISS)
+
+```java
+// FORBIDDEN - unnecessary abstraction layer for a single code path
+public class UserValidatorFactoryProvider { ... }
+
+// REQUIRED - simplest solution that satisfies current requirements
+public class UserValidator { ... }
+```
+
 ### No Inline Comments
 
 ```java
@@ -248,35 +353,8 @@ Pattern: `given_when_then`
 | Not found | `givenNonExistentId_whenFind_thenThrowsNotFoundException` |
 | Edge case | `givenEmptyList_whenProcess_thenReturnsEmpty` |
 
-### Mocking
-
-```java
-// REQUIRED - Use doReturn() to avoid real method invocation
-Mockito.doReturn(value).when(mock).method();
-
-// Verify with times
-Mockito.verify(mock, Mockito.times(1)).method();
-```
-
-### Immutability Pattern
-
-```java
-// FORBIDDEN - Reference mutation
-User user = new User();
-user.setName("test");
-service.save(user);
-Mockito.verify(repository).save(user); // WRONG
-
-// REQUIRED - ArgumentCaptor
-ArgumentCaptor<User> captor = ArgumentCaptor.forClass(User.class);
-Mockito.verify(repository).save(captor.capture());
-Assertions.assertThat(captor.getValue().getName()).isEqualTo("test");
-
-// REQUIRED - ArgumentMatchers
-Mockito.verify(repository).save(Mockito.argThat(u -> 
-    "test".equals(u.getName())
-));
-```
+> [!NOTE]
+> Full mocking, immutability, output-reference-sharing, and recursive-comparison rules with examples live in this skill's own [references/CHECKLIST.md](CHECKLIST.md) — use `Mockito.doReturn(value).when(mock).method(Mockito.any(Type.class))` for stubbing and `Mockito.verify(mock)` (no `times(1)`) for single-call verification during the Red phase.
 
 ---
 
@@ -309,3 +387,6 @@ Mockito.verify(repository).save(Mockito.argThat(u ->
 | Generic `RuntimeException` | Poor error handling |
 | Empty catch blocks | Swallowed errors |
 | Static imports | Reduced readability |
+| Deep inheritance hierarchies | Fragile base class problem, low reuse |
+| Speculative interfaces/config (YAGNI) | Unused abstraction, added complexity |
+| Leaking mutable internal state | Breaks encapsulation, thread-unsafe |

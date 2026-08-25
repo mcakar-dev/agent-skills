@@ -1,6 +1,7 @@
 ---
 name: java-unit-test-writer
 description: Generates unit tests for Java code following TDD practices with 100% delta coverage. Use when the user asks for tests, mentions coverage, works with test files, or requests test generation for staged changes.
+compatibility: Requires JaCoCo configured in the build (Maven or Gradle), Python + diff-cover for delta coverage, JUnit 5, AssertJ, Mockito
 ---
 
 # Java Unit Test Writing
@@ -144,7 +145,10 @@ See [references/CHECKLIST.md](references/CHECKLIST.md) for detailed patterns.
 |------|----------------|
 | Strict stubs | `@ExtendWith(MockitoExtension.class)` |
 | Stubbing | `Mockito.doReturn().when()` (avoids real method call) |
-| Verify calls | `Mockito.verify(mock, Mockito.times(1))` |
+| Stub argument matching | `Mockito.any(Type.class)` in stubs, never a concrete mutable instance |
+| Verify single call | `Mockito.verify(mock)` — defaults to exactly one invocation; do not append `Mockito.times(1)` |
+| Verify N calls | `Mockito.verify(mock, Mockito.times(N))` only when N != 1 |
+| Verify negative flow | `Mockito.verify(mock, Mockito.never())` or `Mockito.verifyNoInteractions(mock)` |
 | No static imports | Use `Mockito.doReturn()`, `Assertions.assertThat()` |
 
 ### D. Immutability (CRITICAL)
@@ -169,6 +173,45 @@ Mockito.verify(repository).save(Mockito.argThat(u ->
     "test".equals(u.getName())
 ));
 ```
+
+### E. Output Reference Sharing (CRITICAL)
+
+> [!CAUTION]
+> **Never let a stubbed return value and its assertion expectation share the same heap reference.**
+
+```java
+// BAD - mockResponse IS expectedResponse (same reference)
+ResponseDto expectedResponse = ResponseDto.builder().id(VALID_ID).status(STATUS_ACTIVE).build();
+Mockito.doReturn(expectedResponse).when(mapper).toDto(Mockito.any());
+ResponseDto result = service.process(VALID_ID);
+Assertions.assertThat(result).usingRecursiveComparison().isEqualTo(expectedResponse);
+// If 'service' mutates the object in place, both variables mutate together -> false positive (mutation survivor)
+
+// GOOD - independent instances
+ResponseDto mockResponse = ResponseDto.builder().id(VALID_ID).status(STATUS_ACTIVE).build();
+ResponseDto expectedResponse = ResponseDto.builder().id(VALID_ID).status(STATUS_ACTIVE).build();
+Mockito.doReturn(mockResponse).when(mapper).toDto(Mockito.any());
+ResponseDto result = service.process(VALID_ID);
+Assertions.assertThat(result).usingRecursiveComparison().isEqualTo(expectedResponse);
+```
+
+The same rule applies to stub arguments: pass `Mockito.any(Type.class)` in `when()`/`doReturn().when()` instead of a concrete request object, then verify the actual argument separately with `ArgumentCaptor`. Matching on a concrete reference couples stubbing to input validation and causes silent `null` returns (masked as downstream `NullPointerException`) if the SUT mutates the object before the call.
+
+### F. Full Object Graph Assertions
+
+Prefer `usingRecursiveComparison()` over asserting one or two scalar fields, especially for DTOs with 3+ fields. Partial assertions let dropped or unmapped fields survive mutation testing undetected.
+
+```java
+// BAD - only 1 of N fields verified
+Assertions.assertThat(captor.getValue().getEmail()).isEqualTo(VALID_EMAIL);
+
+// GOOD - full field graph comparison
+Assertions.assertThat(captor.getValue()).usingRecursiveComparison().isEqualTo(expectedRequest);
+```
+
+### G. Test Fixture Isolation
+
+Do not define mutable fixtures as class fields or in `@BeforeEach`; shared mutable state leaks side effects across tests and creates order-dependent failures. Generate fresh instances per test via a static factory (e.g., `TestObjectFactory`), and centralize magic literals there as `public static final` constants.
 
 ---
 
@@ -226,11 +269,16 @@ Apply code review protocols to generated tests.
 
 | Check | Fix |
 |-------|-----|
-| Magic strings/numbers | Extract to `private static final` constants |
+| Magic strings/numbers | Extract to `private static final` constants (or `TestObjectFactory`) |
 | `@Autowired` usage | Replace with `@InjectMocks` |
 | Static imports | Remove, use class names |
 | `StringUtils.EMPTY` | Use for empty string literals |
 | Mutable object reuse | Apply ArgumentCaptor pattern |
+| Mock return == assertion expectation | Build two distinct instances (see Phase 3.E) |
+| Concrete instance in stub matcher | Replace with `Mockito.any(Type.class)` |
+| Partial field assertion | Replace with `usingRecursiveComparison()` |
+| `Mockito.verify(mock, Mockito.times(1))` | Simplify to `Mockito.verify(mock)` |
+| Shared mutable `@BeforeEach` fixture | Replace with static factory method per test |
 
 ### Review against global rules
 

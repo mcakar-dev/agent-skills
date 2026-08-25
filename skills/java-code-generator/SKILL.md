@@ -1,6 +1,7 @@
 ---
 name: java-code-generator
 description: Generates production-ready Java code following TDD and Clean Architecture principles. Use when the user requests feature implementation, code generation, or mentions TDD workflow for Spring Boot projects.
+compatibility: Requires Java 17+, Maven or Gradle, Lombok, MapStruct (componentModel=spring), JUnit 5, AssertJ, Mockito
 ---
 
 # Java Code Generation
@@ -102,6 +103,15 @@ Identify required components:
 > [!CAUTION]
 > **Entities MUST NOT leak to Controller layer.** DTOs are mandatory for API boundaries.
 
+### Design pattern justification
+
+> [!IMPORTANT]
+> If a GoF pattern (Strategy, Factory, Builder, etc.) is introduced, state the specific cyclomatic-complexity or maintainability problem it solves before implementing it. Do not apply a pattern speculatively — that is a YAGNI violation.
+
+### Method signature review
+
+Before finalizing method signatures and DTO shapes, check against the Feature Envy and Primitive Obsession rules in [references/CODING_RULES.md](references/CODING_RULES.md). Avoid multi-primitive parameter lists (e.g., `sendEmail(String, String, String)`) and methods operating mostly on another class's data. If the **java-code-reviewer** skill is also installed, its `references/PATTERNS.md` has additional examples.
+
 ### Propose file structure
 
 Before proceeding, output:
@@ -178,7 +188,7 @@ public interface UserMapper {
 
 ### Step B: Red Phase (Write Failing Tests)
 
-See [references/CHECKLIST.md](references/CHECKLIST.md) for testing patterns.
+See [references/CHECKLIST.md](references/CHECKLIST.md) for the full mocking/assertion/immutability rule set. If the **java-unit-test-writer** skill is also installed, it can be invoked afterward for broader delta-coverage test generation on existing/staged code.
 
 **Test structure:**
 ```java
@@ -200,23 +210,32 @@ class UserServiceImplTest {
     
     @Test
     void givenValidRequest_whenCreateUser_thenReturnsResponse() {
-        // Arrange
+        // Arrange - independent instances for the stub return value and the assertion expectation
         CreateUserRequest request = new CreateUserRequest(USER_NAME, USER_EMAIL);
         User entity = User.builder().id(USER_ID).name(USER_NAME).email(USER_EMAIL).build();
+        UserResponse mockResponse = new UserResponse(USER_ID, USER_NAME, USER_EMAIL);
         UserResponse expectedResponse = new UserResponse(USER_ID, USER_NAME, USER_EMAIL);
         
-        Mockito.doReturn(entity).when(userMapper).toEntity(request);
+        Mockito.doReturn(entity).when(userMapper).toEntity(Mockito.any(CreateUserRequest.class));
         Mockito.doReturn(entity).when(userRepository).save(Mockito.any(User.class));
-        Mockito.doReturn(expectedResponse).when(userMapper).toResponse(entity);
+        Mockito.doReturn(mockResponse).when(userMapper).toResponse(entity);
         
         // Act
         UserResponse result = userService.createUser(request);
         
         // Assert
-        Assertions.assertThat(result).isNotNull();
-        Assertions.assertThat(result.id()).isEqualTo(USER_ID);
+        Assertions.assertThat(result).usingRecursiveComparison().isEqualTo(expectedResponse);
         
-        Mockito.verify(userRepository, Mockito.times(1)).save(Mockito.any(User.class));
+        Mockito.verify(userRepository).save(Mockito.any(User.class));
+    }
+    
+    @Test
+    void givenNullRequest_whenCreateUser_thenThrowsExceptionAndSkipsPersistence() {
+        // Act & Assert
+        Assertions.assertThatThrownBy(() -> userService.createUser(null))
+            .isInstanceOf(IllegalArgumentException.class);
+        
+        Mockito.verifyNoInteractions(userRepository, userMapper);
     }
 }
 ```
@@ -372,7 +391,7 @@ mvn verify -pl <module>
 
 ## Phase 5: Self-Review
 
-Apply `Rules for Agent` to all generated code. See [references/CODING_RULES.md](references/CODING_RULES.md).
+Apply `Rules for Agent` to all generated code. See [references/CODING_RULES.md](references/CODING_RULES.md). The checklist below is self-sufficient for standalone use; if the **java-code-reviewer** skill is also installed, additionally apply its Phase 2 checklist (P1–P6) for a deeper pass before proceeding to Phase 6.
 
 ### Checklist
 

@@ -1,6 +1,7 @@
 ---
 name: java-code-reviewer
 description: Reviews Java code for Clean Code, OOP, SOLID, and Design Pattern violations. Use when the user requests code review, mentions staged changes, security audit, or architecture analysis for Java/Spring Boot projects.
+compatibility: Requires git; assumes Java 17+ and Spring Boot conventions for architectural context
 ---
 
 # Java Code Review
@@ -46,13 +47,20 @@ git diff --staged --name-only
 ```
 
 **Decision tree:**
-- **IF empty:** STOP. Output: `"No staged changes found. Please stage your changes (git add) or specify the file/class path to review."`
-- **IF files found:** Proceed.
+- **IF files found:** Proceed with `git diff --staged`.
+- **IF empty:** Check for unstaged changes:
+  ```bash
+  git diff --name-only
+  ```
+  - **IF unstaged files found:** Notify the user — `"No staged changes found. Reviewing unstaged changes instead. Stage your changes (git add) to restrict the review scope."` — then proceed with `git diff`.
+  - **IF both empty:** STOP. Output: `"No changes found. Please stage or modify files before requesting a review."`
 
 ### Retrieve diff
 
 ```bash
 git diff --staged
+# or if falling back to unstaged:
+git diff
 ```
 
 For specific paths:
@@ -155,7 +163,8 @@ Use template: [assets/review-template.md](assets/review-template.md)
    git rev-parse --abbrev-ref HEAD
    ```
 2. Extract Jira key pattern (e.g., `ABC-1234`) from branch name.
-3. **IF no key found:** Ask user to provide issue key.
+3. **IF no key found in branch:** Check the user's original request message for a Jira key pattern (`[A-Z]+-[0-9]+`).
+4. **IF still no key found:** Ask user to provide issue key.
 
 ### Create output file
 

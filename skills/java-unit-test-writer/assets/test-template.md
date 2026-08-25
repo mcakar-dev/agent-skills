@@ -34,13 +34,14 @@ class MyServiceTest {
 
     @Test
     void givenValidRequest_whenCreate_thenSavesAndReturnsResponse() {
-        // ARRANGE
+        // ARRANGE - independent instances for the stub return value and the assertion expectation
         CreateRequest request = buildValidRequest();
         Entity savedEntity = buildEntity(VALID_ID, VALID_NAME);
-        
+        Entity expectedEntity = buildEntity(VALID_ID, VALID_NAME);
+
         ArgumentCaptor<Entity> captor = ArgumentCaptor.forClass(Entity.class);
         Mockito.doReturn(savedEntity)
-            .when(repository).save(captor.capture());
+            .when(repository).save(Mockito.any(Entity.class));
 
         // ACT
         CreateResponse response = service.create(request);
@@ -50,7 +51,7 @@ class MyServiceTest {
         Assertions.assertThat(response.getId()).isEqualTo(VALID_ID);
 
         Mockito.verify(repository).save(captor.capture());
-        Assertions.assertThat(captor.getValue().getName()).isEqualTo(VALID_NAME);
+        Assertions.assertThat(captor.getValue()).usingRecursiveComparison().isEqualTo(expectedEntity);
     }
 
     @Test
@@ -59,6 +60,9 @@ class MyServiceTest {
         Assertions.assertThatThrownBy(() -> service.create(null))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessageContaining("must not be null");
+
+        // ASSERT - negative flow must not touch downstream dependencies
+        Mockito.verifyNoInteractions(repository);
     }
 
     @Test
@@ -114,3 +118,27 @@ class MyServiceTest {
 | Exception | `givenInvalidInput_whenAction_thenThrowsException` |
 | Edge case | `givenEdgeCondition_whenAction_thenHandledCorrectly` |
 | Not found | `givenNonExistent_whenAction_thenThrowsNotFound` |
+
+---
+
+## Test Object Factory (Multi-Test Fixtures)
+
+When more than one test class needs the same fixture, extract it into a static factory instead of a mutable `@BeforeEach` field. Each call returns a fresh, isolated instance, and literals are centralized as constants.
+
+```java
+public final class TestObjectFactory {
+
+    public static final String CURRENCY_USD = "USD";
+    public static final String STATUS_PENDING_PAYMENT = "PENDING_PAYMENT";
+
+    private TestObjectFactory() {
+    }
+
+    public static OrderRequest createOrderRequest() {
+        return OrderRequest.builder()
+            .currency(CURRENCY_USD)
+            .status(STATUS_PENDING_PAYMENT)
+            .build();
+    }
+}
+```
